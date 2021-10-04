@@ -1,0 +1,73 @@
+<!--run this with 'npx http-server -o init.html'-->
+
+<head></head>
+<body>
+	<button id="enableEthereumButton">
+		Connect To MetaMask
+	</button>
+	<div id="transactionStatus"></div>
+
+	<br>
+	<br>
+
+	<button id="approveDaiButton">Approve Fake-DAI</button>
+	<br>
+	<button id="approveUsdcButton">Approve Fake-USDC</button>
+	<br>
+	<button id="approveUsdtButton">Approve Fake-USDT</button>
+	<br>
+	<button id="approveLPButton">APPROVE LP TOKENS</button>
+	<br>
+	
+	<br>
+	<br>
+	<br>
+
+	<!--Deposit section-->
+	<div id="WannaDeposit">Want to Do a Deposit? Input amounts and click DEPOSIT</div>
+	<label for="DaiToDeposit">Fake-DAI To Deposit:</label>
+	<input type="number" id="DaiToDeposit" name="DaiToDeposit"
+       	min="0">
+	<br>
+	<label for="UsdcToDeposit">Fake-USDC To Deposit:</label>
+	<input type="number" id="UsdcToDeposit" name="UsdcToDeposit"
+		min="0">
+	<br>
+	<label for="UsdtToDeposit">Fake-USDT To Deposit:</label>
+	<input type="number" id="UsdtToDeposit" name="UsdtToDeposit"
+		min="0">
+	<br>
+	<button id="depositDaiButton">DEPOSIT</button>
+	<div id="DaiDepositConfirmation"></div>
+	
+	<br>
+	<br>
+
+	<button id="showSelectedButton">Get my LP token balance</button>
+	<div id="selectedConfirmation"></div>
+	<label for="withdrawAmountInput">LP Tokens To Withdraw: </label>
+	<input type="number" id="withdrawAmountInput" name="withdrawAmountInput"
+	min="0">
+	<button id="withdrawBalancedButton">WITHDRAW BALANCED</button>
+	
+	<br>
+	<br>
+	<br>
+
+	<label for="swapAmountIn">Tokens in for swap</label>
+	<input type="number" id="SwapAmountIn" name="SwapAmountIn"
+		min="0">
+	<br>
+	<label for="swapTokenIndexIn">Token index for swap Input(0=DAI, 1=USDC, 2=USDT)</label>
+	<input type="number" id="SwapTokenIndexIn" name="swapTokenIndexIn"
+		min="0">
+	<br>
+	<label for="swapTokenIndexOut">Token index for swap Output(0=DAI, 1=USDC, 2=USDT)</label>
+	<input type="number" id="SwapTokenIndexOut" name="swapTokenIndexOut"
+		min="0">
+	<br>
+	<button id="swapButton">SWAP</button>
+
+<script src="main.js"></script>
+</body>	
+
