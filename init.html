@@ -68,6 +68,39 @@
 	<br>
 	<button id="swapButton">SWAP</button>
 
+	<br>
+	<br>
+	<br>
+
+	<div id="specialWithdrawals">~=-=~ Special Withdrawals ~=-=~</div>
+
+	<br> 
+
+	<div id="imbalancedWithdrawal">Imbalanced Withdrawal</div>
+	<label for="imbalancedDAIOut">DAI desired: </label>
+	<input type="number" id="imbalancedDAIOut" name="imbalancedDAIOut"
+		min="0">
+	<label for="imbalancedUSDCOut">USDC desired: </label>
+	<input type="number" id="imbalancedUSDCOut" name="imbalancedUSDCOut"
+		min="0">
+	<label for="imbalancedUSDTOut">USDT desired: </label>
+	<input type="number" id="imbalancedUSDTOut" name="imbalancedUSDTOut"
+		min="0">
+	<button id="withdrawImbalancedButton">WITHDRAW IMBALANCED</button>
+
+	<br> 
+	<br>
+	
+	<div id="singleWithdrawal">Single Token Withdrawal</div>
+	<label for="singleTokenIndex">Withdrawal Token Index(0=DAI, 1=USDC, 2=USDT)</label>
+	<input type="number" id="singleTokenIndex" name="singleTokenIndex"
+		min="0">
+	<br>
+	<label for="singleTokenAmount">Amount Of LP Token To Withdraw</label>
+	<input type="number" id="singleTokenAmount" name="singleTokenAmount"
+		min="0">
+	<br>
+	<button id="withdrawSingleButton">WITHDRAW SINGLE TOKEN</button>
 <script src="main.js"></script>
 </body>	
 

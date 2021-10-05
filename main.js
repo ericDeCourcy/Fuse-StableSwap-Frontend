@@ -30,6 +30,18 @@ const swapAmountIn = document.getElementById('SwapAmountIn');
 const showSelectedButton = document.querySelector('#showSelectedButton');
 const selectedConfirmation = document.getElementById('selectedConfirmation');
 
+// imbalanced Withdrawal
+const imbalancedDAIOut = document.getElementById('imbalancedDAIOut');
+const imbalancedUSDCOut = document.getElementById('imbalancedUSDCOut');
+const imbalancedUSDTOut = document.getElementById('imbalancedUSDTOut');
+const withdrawImbalancedButton = document.querySelector('#withdrawImbalancedButton');
+
+// single token withdrawal
+const singleTokenIndex = document.getElementById('singleTokenIndex');
+const singleTokenAmount = document.getElementById('singleTokenAmount');
+const withdrawSingleToken = document.querySelector('#withdrawSingleButton');
+
+// accounts (for metamask)
 let accounts = [];
 
 // Transaction encoding params
@@ -425,8 +437,129 @@ async function doSwap() {
 
 }
 
-// TODO: build a swap button
+withdrawImbalancedButton.addEventListener('click', () => {
+  doImbalancedWithdraw();
+});
 
+async function doImbalancedWithdraw() {
+  
+  let imbalancedDAIOutVal = imbalancedDAIOut.value;
+  let imbalancedUSDCOutVal = imbalancedUSDCOut.value;
+  let imbalancedUSDTOutVal = imbalancedUSDTOut.value;
+  // TODO add in optional amount of max LP tokens to burn
+
+  let imbalancedDAIScaled = imbalancedDAIOutVal * 1e+18;
+  let imbalancedUSDCScaled = imbalancedUSDCOutVal * 1e+6;
+  let imbalancedUSDTScaled = imbalancedUSDTOutVal * 1e+6;
+  
+  let imbalancedDAIHex = imbalancedDAIScaled.toString(16);
+  let imbalancedUSDCHex = imbalancedUSDCScaled.toString(16);
+  let imbalancedUSDTHex = imbalancedUSDTScaled.toString(16);
+
+  let DAIHexPadded = imbalancedDAIHex;
+  for(let i = DAIHexPadded.length; i < 64; i++)
+  {
+    DAIHexPadded = "0" + DAIHexPadded;
+  }
+
+  let USDCHexPadded = imbalancedUSDCHex;
+  for(let i = USDCHexPadded.length; i < 64; i++)
+  {
+    USDCHexPadded = "0" + USDCHexPadded;
+  }
+
+  let USDTHexPadded = imbalancedUSDTHex;
+  for(let i = USDTHexPadded.length; i < 64; i++)
+  {
+    USDTHexPadded = "0" + USDTHexPadded;
+  }
+
+  let txEncoded = 
+  "0x84cdd9bc" +                                                       //func sig
+  "0000000000000000000000000000000000000000000000000000000000000060" + //array bullshit
+  "0000000000000000000000000000000000000000000000056BC75E2D63100000" + // max burn amount TODO - this currently is 100e18, but will not work if you have less than 100 tokens. Assign it to return of view balanceOf msg.sender
+  "000000000000000000000000000000000000000000000000000000006ca33f73" + // deadline
+  "0000000000000000000000000000000000000000000000000000000000000003" + // array bullshit
+  DAIHexPadded +                                                       // DAI amount
+  USDCHexPadded +                                                      // USDC amount
+  USDTHexPadded;                                                       // USDT amount
+
+  const imbalancedTransactionParams = {
+    nonce: '0x00', // ignored by MetaMask
+
+    // gasPrice is 1 Gwei
+    gasPrice: '0x3B9ACA00', // customizable by user during MetaMask confirmation.
+    gas: '0x0F4240', // customizable by user during MetaMask confirmation.
+    to: fakeswapAddress, // Required except during contract publications.
+    from: ethereum.selectedAddress, // must match user's active address.
+    value: '0x00', // Only required to send ether to the recipient from the initiating external account.
+    data: txEncoded,
+    chainId: '0x7a', // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
+  };
+
+
+  await ethereum.request({ 
+    method: 'eth_sendTransaction',
+    params: [imbalancedTransactionParams]
+  }); 
+
+};
+
+withdrawSingleButton.addEventListener('click', () => {
+  doSingleWithdraw();
+});
+
+async function doSingleWithdraw() {
+
+  let tokenIndexIn = singleTokenIndex.value;
+  let tokenIndexHex = tokenIndexIn.toString(16);  //need this to ensure some jerk didn't put in like 0.7 or something. Should round to hex whole number
+
+  let tokenAmountIn = singleTokenAmount.value;
+  
+  if(tokenIndexIn > 2) return;  //input sanitized B-]
+  
+  amountInHex = (tokenAmountIn * 1e+18).toString(16); //scaled by 1e18 cuz DAI be likethat
+  
+
+
+  // pad that
+  amountInPadded = amountInHex
+  for(let i = amountInHex.length; i < 64; i++)
+  {
+    amountInPadded = "0" + amountInPadded;
+  }
+
+  indexInPadded = sixtyThreeZeroes + tokenIndexHex;
+
+  txData = 
+  "0x3e3a1560" +                                                        // func sig
+  amountInPadded +                                                      //amount LP in
+  indexInPadded +                                                       //token index
+  "0000000000000000000000000000000000000000000000000000000000000001" +  // min out
+  "000000000000000000000000000000000000000000000000000000006ca33f73";  // deadline of 2027 ish
+  
+  const singleWithdrawTransaction = {
+    nonce: '0x00', // ignored by MetaMask
+
+    // gasPrice is 1 Gwei
+    gasPrice: '0x3B9ACA00', // customizable by user during MetaMask confirmation.
+    gas: '0x0F4240', // customizable by user during MetaMask confirmation.
+    to: fakeswapAddress, // Required except during contract publications.
+    from: ethereum.selectedAddress, // must match user's active address.
+    value: '0x00', // Only required to send ether to the recipient from the initiating external account.
+    data: txData,
+    chainId: '0x7a', // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
+  };
+
+  await ethereum.request({ 
+    method: 'eth_sendTransaction',
+    params: [singleWithdrawTransaction]
+  }); 
+
+
+};
+
+// TODO clean up this when no longer needed
 /* SWAP TX
 0x91695586
 0000000000000000000000000000000000000000000000000000000000000000  // token index from
@@ -434,11 +567,7 @@ async function doSwap() {
 0000000000000000000000000000000000000000000000000de0b6b3a7640000  // amount in
 0000000000000000000000000000000000000000000000000000000000000001  // min out
 000000000000000000000000000000000000000000000000000000006ca33f73  // deadline
-
-
 */
-
-// TODO: build imbalanced withdrawal buttons
 
 /*
 REMOVE LIQ IMBALANCED
