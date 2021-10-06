@@ -13,7 +13,7 @@ const approveLPButton = document.querySelector('#approveLPButton');
 
 // deposit button
 // TODO: rename "deposit Dai" to "deposit"
-const depositDaiButton = document.querySelector('#depositDaiButton');
+const depositButton = document.querySelector('#depositButton');
 const DaiDepositConfirmation = document.getElementById('DaiDepositConfirmation');
 DaiDepositConfirmation.innerHTML = "Deposit not initiated";
 const DaiToDeposit = document.getElementById('DaiToDeposit');
@@ -41,6 +41,9 @@ const singleTokenIndex = document.getElementById('singleTokenIndex');
 const singleTokenAmount = document.getElementById('singleTokenAmount');
 const withdrawSingleToken = document.querySelector('#withdrawSingleButton');
 
+// reward claim button
+const getRewardsButton = document.querySelector('#getRewardsButton');
+
 // accounts (for metamask)
 let accounts = [];
 
@@ -54,6 +57,8 @@ const fakeUsdcAddress =         '0x88c784FACBE88A20601A32Bd98d9Da8d59d08F92';
 const fakeUsdtAddress =         '0xa479351d97e997EbCb453692Ef16Ce06730bEBF4';
 const fakeswapAddress =         '0xeADfEa5f18c1E1D5030dd352f293d78865a264a2';
 const fakeLPAddress =           '0x410a69Cdb3320594019Ef14A7C3Fb4Abaf6e962e';
+const rewardClaimMsgData =      "0xc00007b00000000000000000000000001d7216e115f8884016004e3f390d824f0cec4afc";
+const rewardsContractAddress =  "0x82cCDecF87141190F6A69321FB88F040aff83B08"; 
 
 ethereumButton.addEventListener('click', () => {
   //Will Start the metamask extension
@@ -174,8 +179,7 @@ approveLPButton.addEventListener('click', () => {
   console.log("clicked the approve LP tokens button");
 });
 
-// TODO rename
-depositDaiButton.addEventListener('click', () => {
+depositButton.addEventListener('click', () => {
 
   // DAI ---
     // grab the value from the form
@@ -558,6 +562,29 @@ async function doSingleWithdraw() {
 
 
 };
+
+getRewardsButton.addEventListener('click', () => {
+  doRewardClaim();
+});
+
+async function doRewardClaim() {
+
+  const rewardClaimTx = {
+    nonce: '0x00', //ignored by MetaMask
+    gasPrice: '0x3B9ACA00',
+    gas: '0x0F4240',
+    to: rewardsContractAddress,
+    from: ethereum.selectedAddress,
+    value: '0x00',
+    data: rewardClaimMsgData,
+    chainId: '0x7a',
+  };
+
+  await ethereum.request({
+    method: 'eth_sendTransaction',
+    params: [rewardClaimTx]
+  });
+}
 
 // TODO clean up this when no longer needed
 /* SWAP TX
