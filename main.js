@@ -309,7 +309,7 @@ async function getLPBalance() {
     }); 
     
     // TODO: rename elements from "selectedConfirmation" to something regarding getting LP balance
-    selectedConfirmation.innerHTML = "Your LP Token balance: " + (parseInt(LPBalance,16) / 1e+18) + "withdrawAmount.value = " + withdrawAmountInput.value;
+    selectedConfirmation.innerHTML = "Your LP Token balance: " + (parseInt(LPBalance,16) / 1e+18);
 
 }
 
@@ -478,10 +478,25 @@ async function doImbalancedWithdraw() {
     USDTHexPadded = "0" + USDTHexPadded;
   }
 
+  // to get max burn amount, get their LP balance and set it to that
+  let encodedBalanceTx = "0x70a08231" + twentyFourZeroes + ethereum.selectedAddress.slice(2,);
+
+  let LPBalance = await ethereum.request({ 
+    method: 'eth_call',
+    params:  [{
+      to: fakeLPAddress,
+      data: encodedBalanceTx
+    }]
+  }); 
+
+  console.log("LP Balance = " + LPBalance)
+
+  let LPBalanceFormatted = LPBalance.slice(2,)
+
   let txEncoded = 
   "0x84cdd9bc" +                                                       //func sig
   "0000000000000000000000000000000000000000000000000000000000000060" + //array bullshit
-  "0000000000000000000000000000000000000000000000056BC75E2D63100000" + // max burn amount TODO - this currently is 100e18, but will not work if you have less than 100 tokens. Assign it to return of view balanceOf msg.sender
+  LPBalanceFormatted                                                 + // max burn amount
   "000000000000000000000000000000000000000000000000000000006ca33f73" + // deadline
   "0000000000000000000000000000000000000000000000000000000000000003" + // array bullshit
   DAIHexPadded +                                                       // DAI amount
