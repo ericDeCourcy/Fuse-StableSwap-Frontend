@@ -7,6 +7,20 @@ const tabs = {
   actions: document.getElementById("actions")
 }
 
+const actionSectionTitles = {
+  deposit: document.getElementById("depositTitle"),
+  swap: document.getElementById("swapTitle"),
+  withdraw: document.getElementById("withdrawTitle"),
+  rewards: document.getElementById("rewardsTitle")
+}
+
+const actionSections = {
+  deposit: document.getElementById("deposit"),
+  swap: document.getElementById("swap"),
+  withdraw: document.getElementById("withdraw"),
+  rewards: document.getElementById("rewards")
+}
+
 // deposit button
 // TODO: rename "deposit Dai" to "deposit"
 const depositButton = document.querySelector('#depositButton');
@@ -57,7 +71,7 @@ const rewardsContractAddress =  "0x82cCDecF87141190F6A69321FB88F040aff83B08";
 async function connectToMetamask(button) {
   button.disabled = true;
   console.log("Attempting to connect to Metamask...");
-  await new Promise(r => setTimeout(r, 1000));
+  // await new Promise(r => setTimeout(r, 500));
   
   const transactionStatus = document.getElementById('transactionStatus');
   
@@ -79,6 +93,60 @@ async function connectToMetamask(button) {
     button.disabled = false;
   }
 }
+
+async function approveToken(button, tokenName, address, statusElementId) {
+  button.disabled = true;
+  console.log(`Clicked the 'Approve ${tokenName}' button.`);
+  const statusMessage = document.getElementById(statusElementId);
+  statusMessage.innerHTML = "Attempting to approve token...";
+  const transactionParameters = {
+    nonce: "0x00", // ignored by MetaMask
+    gasPrice: "0x3B9ACA00", // gasPrice is 1 Gwei. customizable by user during MetaMask confirmation.
+    gas: "0x0186A0", // customizable by user during MetaMask confirmation.
+    to: address, // Required except during contract publications.
+    from: ethereum.selectedAddress, // must match user's active address.
+    value: '0x00', // Only required to send ether to the recipient from the initiating external account.    
+    data:
+      "0x095ea7b3"
+      + fakeswapAddressPadded
+      + maxApprovalAmount, // Optional, but used for defining smart contract creation and interaction.
+    chainId: "0x7a", // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
+  };
+  
+  let message = "";
+  try {
+    // request returns transaction hash
+    await ethereum.request({
+      method: "eth_sendTransaction",
+      params: [transactionParameters],
+    });
+    message = `Successfully approved ${tokenName}.`; 
+    console.log(message);
+  } catch(error) {
+    message = `Could not approve ${tokenName}: ${error}`;
+    console.error(message);
+    button.disabled = false;
+  } finally {
+    statusMessage.innerHTML = message;
+  }
+}
+
+async function approveDai(button) {
+  await approveToken(button, "Fake-DAI", fakeDaiAddress, "approveDaiStatus");
+}
+
+async function approveUsdc(button) {
+  await approveToken(button, "Fake-USDC", fakeUsdcAddress, "approveUsdcStatus");
+}
+
+async function approveUsdt(button) {
+  await approveToken(button, "Fake-USDT", fakeUsdtAddress, "approveUsdtStatus");
+}
+
+async function approveLP(button) {
+  await approveToken(button, "LP Token", fakeLPAddress, "approveLPStatus");
+}
+
 
 function continueToActionsTab() {
   tabs.approval.hidden = true;
@@ -503,6 +571,7 @@ async function doRewardClaim() {
   });
 }
 
+
 // TODO clean up this when no longer needed
 /* SWAP TX
 0x91695586
@@ -533,5 +602,3 @@ REMOVE LIQ ONETOKEN
 0000000000000000000000000000000000000000000000000000000000000001  // min out
 000000000000000000000000000000000000000000000000000000006ca33f73  // deadline of 2027 ish
 */
-
-// TODO: build a "claim rewards" button

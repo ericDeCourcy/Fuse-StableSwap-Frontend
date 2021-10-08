@@ -1,0 +1,81 @@
+html, body {
+    font-family: "Inter var", sans-serif;
+    font-weight: 400;
+    color: #ffffff;
+    background-color: #052235;
+}
+div.tab {
+    margin-left: 20%;
+    margin-top: 200px;
+    margin-right: 20%;
+    margin-bottom: auto;
+    padding: 30px;
+    text-align: center;
+    background-color: rgb(0, 21, 34);
+    border-radius: 20px;
+}
+
+
+h1, h2 {
+    font-weight: 400;
+}
+
+div.instructions {
+    color: rgb(158, 164, 182);
+}
+
+.status {
+    font-style: italic;
+}
+
+button {
+    margin: 5px;
+	border: none;
+	padding: 18px;
+	font: inherit;
+	outline: inherit;
+    border-radius: 20px;
+    outline: currentcolor none medium;
+    background-color:rgba(21, 61, 111, 0.44);
+    color: #ffffff;
+}
+/* 
+button.sectionButton {
+    background-color: rgba(0,0,0,0);
+    font-size: larger;
+    color: #aaaaaa;
+}
+
+button.sectionButton:hover {
+    background-color: rgba(0,0,0,0);
+    color: fffffff;
+}
+
+button.sectionButton.activeSection {
+    color: #ffffff;
+} */
+
+button:hover {
+    background-color: rgba(21, 61, 111, .88);
+    cursor: pointer;
+}
+
+button:disabled {
+    background-color:rgba(21, 61, 111, 0.22);
+    color:rgb(109, 168, 255);
+}
+
+button.majorButton {
+    background-image: linear-gradient(137.27deg, rgb(177, 255, 191, .75) 3.65%, rgb(255, 241, 109, .75) 100%);
+    color: rgb(0, 21, 34);
+}
+
+button.majorButton:hover {
+    background-image: linear-gradient(137.27deg, rgb(177, 255, 191) 3.65%, rgb(255, 241, 109) 100%);
+    color: rgb(0, 21, 34);
+}
+
+button.majorButton:disabled {
+    background-image: linear-gradient(137.27deg, rgb(177, 255, 191, .5) 3.65%, rgb(255, 241, 109, .5) 100%);
+    color: #000000;
+}

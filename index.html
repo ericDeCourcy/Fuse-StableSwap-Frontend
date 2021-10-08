@@ -1,48 +1,62 @@
 <!--run this with 'npx http-server -o index.html'-->
-<head></head>
+<head>
+	<meta charset="utf-8">
+	<link rel="icon" type="image/png" href="./favicon.png">
+	<title>Fuse Stable Swap</title>
+	<link href="./default.css" rel="stylesheet">
+</head>
 <body>
+	<noscript>You need to enable JavaScript to run this app.</noscript>
+	
 	<div id="metamaskConnection" class="tab">
-		<h1>STEP 1: Connect With Metamask</h1>
+		<h1>Connect With Metamask</h1>
 		<div class="instructions">
 			First things first, connect to MetaMask! If you don't have metamask, download it from metamask.io
 			<br/>If you're connected, you'll see a message below the button indicating this.
 		</div>
 		<br/>
-		<button id="enableEthereumButton" onclick="connectToMetamask(this)">Connect To MetaMask</button>
-		<div id="transactionStatus">Metamask not connected</div>
+		<button id="enableEthereumButton" class="majorButton" onclick="connectToMetamask(this)">Connect To MetaMask</button>
+		<div id="transactionStatus" class="status">Metamask not connected</div>
 	</div>
 
 	<div id="tokenApproval" class="tab" hidden>
-		<h1>STEP 2: Approvals</h1>
+		<h1>Approvals</h1>
 		<div class="instructions">
 			Before using StableSwap, you'll need to approve any tokens you plan to transfer in.
 			<br/>These buttons will approve the maximum amount of each token.
 			<br/>Note that you will need to approve the LP token if you plan to withdraw, as this gives the swap contract the ability to burn your LP tokens.
 		</div>
-		<button id="approveDaiButton" onclick="approveDai(this)">Approve Fake-DAI</button>
-		<div id="approveDaiStatus"></div>
-		<br/>
-		<button id="approveUsdcButton" onclick="approveUsdc(this)">Approve Fake-USDC</button>
-		<div id="approveUsdcStatus"></div>
-		<br/>
-		<button id="approveUsdtButton" onclick="approveUsdt(this)">Approve Fake-USDT</button>
-		<div id="approveUsdtStatus"></div>
-		<br/>
-		<button id="approveLPButton" onclick="approveLP(this)">Approve LP TOKENS</button>
-		<div id="approveLPStatus"></div>
-		<br />
-		<button id="continueButton" onclick="continueToActionsTab()">Skip / Continue</button>
+		<div id="tokenApprovalButtons">
+			<button id="approveDaiButton" onclick="approveDai(this)">Approve Fake-DAI</button>
+			<span id="approveDaiStatus" class="status"></span>
+			<br/>
+			<button id="approveUsdcButton" onclick="approveUsdc(this)">Approve Fake-USDC</button>
+			<span id="approveUsdcStatus" class="status"></span>
+			<br/>
+			<button id="approveUsdtButton" onclick="approveUsdt(this)">Approve Fake-USDT</button>
+			<span id="approveUsdtStatus" class="status"></span>
+			<br/>
+			<button id="approveLPButton" onclick="approveLP(this)">Approve LP Tokens</button>
+			<span id="approveLPStatus" class="status"></span>
+		</div>
+		<button id="continueButton" class="majorButton" onclick="continueToActionsTab()">Skip / Continue</button>
 	</div>
 
 	<div id="actions" class="tab" hidden>
-		<div id="acctionInstructions" class="section">
-			<h1>STEP 3: Take Action!</h1>
+		<div id="actionInstructions" class="section">
+			<h1>Take Action!</h1>
 			<div class="instructions">
 				Now that you're connected and you've approved tokens, you're ready to take actions.
 				<br/>You can deposit liquidity, swap, or perform 3 different types of liquidity withdrawal.
 			</div>
 		</div>
 
+		<!-- <div id="actionOptions">
+			<button id="depositTitle" class="sectionButton" onclick="selectDeposit(this)">Deposit</button>
+			<button id="swapTitle" class="sectionButton activeSection" onclick="selectSwap(this)">Swap</button>
+			<button id="withdrawTitle" class="sectionButton" onclick="selectWithdraw(this)">Withdraw</button>
+			<button id="rewardsTitle" class="sectionButton" onclick="selectRewards(this)">Rewards</button>
+		</div> -->
 		<div id="deposit" class="section">
 			<h2>DEPOSIT</h2>
 			<div class="instructions">
@@ -57,8 +71,8 @@
 			<label for="UsdtToDeposit">Fake-USDT To Deposit:</label>
 			<input type="number" id="UsdtToDeposit" name="UsdtToDeposit" min="0">
 			<br/>
-			<button id="depositButton">DEPOSIT</button>	<!--TODO: rename this-->
-			<div id="DaiDepositConfirmation"></div>
+			<button id="depositButton" class="majorButton">Deposit</button>	<!--TODO: rename this-->
+			<div id="DaiDepositConfirmation" class="status"></div>
 		</div>
 		
 		<div id="swap" class="section">
@@ -76,50 +90,52 @@
 			<label for="swapTokenIndexOut">Token index for swap Output(0=DAI, 1=USDC, 2=USDT)</label>
 			<input type="number" id="SwapTokenIndexOut" name="swapTokenIndexOut" min="0">
 			<br/>
-			<button id="swapButton">SWAP</button>
+			<button id="swapButton" class="majorButton">Swap</button>
 		</div>
 
-		<div id="balancedWithdrawl" class="section">
-			<h2>BALANCED WITHDRAWAL</h2>
-			<div class="instructions">
-				This will burn LP tokens and send you tokens in equal proportions to what the pool has.
-				<br/>Make sure your LP tokens are approved! You can use the "Get my LP token balance" button to see what your balance is before withdrawing.
+		<div id="withdraw">
+			<div id="balancedWithdrawl" class="section">
+				<h2>BALANCED WITHDRAWAL</h2>
+				<div class="instructions">
+					This will burn LP tokens and send you tokens in equal proportions to what the pool has.
+					<br/>Make sure your LP tokens are approved! You can use the "Get my LP token balance" button to see what your balance is before withdrawing.
+				</div>
+				<button id="showSelectedButton">Get my LP token balance</button>
+				<div id="selectedConfirmation"></div>	<!--TODO: rename this-->
+				<label for="withdrawAmountInput">LP Tokens To Withdraw: </label>
+				<input type="number" id="withdrawAmountInput" name="withdrawAmountInput" min="0">
+				<button id="withdrawBalancedButton" class="majorButton">Withdraw Balanced</button>
 			</div>
-			<button id="showSelectedButton">Get my LP token balance</button>
-			<div id="selectedConfirmation"></div>	<!--TODO: rename this-->
-			<label for="withdrawAmountInput">LP Tokens To Withdraw: </label>
-			<input type="number" id="withdrawAmountInput" name="withdrawAmountInput" min="0">
-			<button id="withdrawBalancedButton">WITHDRAW BALANCED</button>
-		</div>
 
-		<div id="imbalancedWithdrawl" class="section">
-			<h2>IMBALANCED WITHDRAWAL</h2>
-			<div class="instructions">
-				This will give the "desired" amounts of each tokens, burning the appropriate number of LP tokens. Keep in mind that this may burn up to all of your LP tokens.
-				<br/>Make sure your LP tokens are approved!
+			<div id="imbalancedWithdrawl" class="section">
+				<h2>IMBALANCED WITHDRAWAL</h2>
+				<div class="instructions">
+					This will give the "desired" amounts of each tokens, burning the appropriate number of LP tokens. Keep in mind that this may burn up to all of your LP tokens.
+					<br/>Make sure your LP tokens are approved!
+				</div>
+				<label for="imbalancedDAIOut">DAI desired: </label>
+				<input type="number" id="imbalancedDAIOut" name="imbalancedDAIOut" min="0">
+				<label for="imbalancedUSDCOut">USDC desired: </label>
+				<input type="number" id="imbalancedUSDCOut" name="imbalancedUSDCOut" min="0">
+				<label for="imbalancedUSDTOut">USDT desired: </label>
+				<input type="number" id="imbalancedUSDTOut" name="imbalancedUSDTOut" min="0">
+				<button id="withdrawImbalancedButton" class="majorButton">Withdraw Imbalanced</button>	
 			</div>
-			<label for="imbalancedDAIOut">DAI desired: </label>
-			<input type="number" id="imbalancedDAIOut" name="imbalancedDAIOut" min="0">
-			<label for="imbalancedUSDCOut">USDC desired: </label>
-			<input type="number" id="imbalancedUSDCOut" name="imbalancedUSDCOut" min="0">
-			<label for="imbalancedUSDTOut">USDT desired: </label>
-			<input type="number" id="imbalancedUSDTOut" name="imbalancedUSDTOut" min="0">
-			<button id="withdrawImbalancedButton">WITHDRAW IMBALANCED</button>	
-		</div>
-		
-		<div id="singleWithdrawl" class="section">
-			<h2>SINGLE TOKEN WITHDRAWAL</h2>
-			<div class="instructions">
-				This will burn a specified amount of LP tokens and withdraw all funds in the form of a single token.
-				<br/>For the token's index, input 0, 1 or 2 to code for Fake-DAI, Fake-USDC, or Fake-USDT.
+			
+			<div id="singleWithdrawl" class="section">
+				<h2>SINGLE TOKEN WITHDRAWAL</h2>
+				<div class="instructions">
+					This will burn a specified amount of LP tokens and withdraw all funds in the form of a single token.
+					<br/>For the token's index, input 0, 1 or 2 to code for Fake-DAI, Fake-USDC, or Fake-USDT.
+				</div>
+				<label for="singleTokenIndex">Withdrawal Token Index(0=DAI, 1=USDC, 2=USDT)</label>
+				<input type="number" id="singleTokenIndex" name="singleTokenIndex" min="0">
+				<br/>
+				<label for="singleTokenAmount">Amount Of LP Token To Withdraw</label>
+				<input type="number" id="singleTokenAmount" name="singleTokenAmount" min="0">
+				<br/>
+				<button id="withdrawSingleButton" class="majorButton">Withdraw Single Token</button>	
 			</div>
-			<label for="singleTokenIndex">Withdrawal Token Index(0=DAI, 1=USDC, 2=USDT)</label>
-			<input type="number" id="singleTokenIndex" name="singleTokenIndex" min="0">
-			<br/>
-			<label for="singleTokenAmount">Amount Of LP Token To Withdraw</label>
-			<input type="number" id="singleTokenAmount" name="singleTokenAmount" min="0">
-			<br/>
-			<button id="withdrawSingleButton">WITHDRAW SINGLE TOKEN</button>	
 		</div>
 
 		<div id="rewards" class="section">
@@ -127,11 +143,10 @@
 			<div class="instructions">
 				Over time, your LP token balance will entitle you to rewards. All you need to do to get rewards is own LP tokens, then click this button to claim them!
 			</div>
-			<button id="getRewardsButton">CLAIM REWARDS</button>
+			<button id="getRewardsButton" class="majorButton">Claim Rewards</button>
 		</div>
 	</div>
 	
-<script src="tokenApprovals.js"></script>
 <script src="main.js"></script>
 </body>	
 
