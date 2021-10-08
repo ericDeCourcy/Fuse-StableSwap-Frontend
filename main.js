@@ -1,15 +1,11 @@
-//import BigNumber from "bignumber.js";
+// accounts (for metamask)
+let accounts = [];
 
-// connect to metamask
-const ethereumButton = document.querySelector('#enableEthereumButton');
-const transactionStatus = document.getElementById('transactionStatus');
-transactionStatus.innerHTML = "Metamask not connected";
-
-// approve coin buttons
-const approveDaiButton = document.querySelector('#approveDaiButton');
-const approveUsdcButton = document.querySelector('#approveUsdcButton');
-const approveUsdtButton = document.querySelector('#approveUsdtButton');
-const approveLPButton = document.querySelector('#approveLPButton');
+const tabs = {
+  connection: document.getElementById("metamaskConnection"),
+  approval: document.getElementById("tokenApproval"),
+  actions: document.getElementById("actions")
+}
 
 // deposit button
 // TODO: rename "deposit Dai" to "deposit"
@@ -44,9 +40,6 @@ const withdrawSingleToken = document.querySelector('#withdrawSingleButton');
 // reward claim button
 const getRewardsButton = document.querySelector('#getRewardsButton');
 
-// accounts (for metamask)
-let accounts = [];
-
 // Transaction encoding params
 const twentyFourZeroes =        '000000000000000000000000';
 const sixtyThreeZeroes =        '000000000000000000000000000000000000000000000000000000000000000';
@@ -60,124 +53,38 @@ const fakeLPAddress =           '0x410a69Cdb3320594019Ef14A7C3Fb4Abaf6e962e';
 const rewardClaimMsgData =      "0xc00007b00000000000000000000000001d7216e115f8884016004e3f390d824f0cec4afc";
 const rewardsContractAddress =  "0x82cCDecF87141190F6A69321FB88F040aff83B08"; 
 
-ethereumButton.addEventListener('click', () => {
-  //Will Start the metamask extension
-  getAccount();
-  console.log("ya clicked the connect button");
-});
 
-approveDaiButton.addEventListener('click', () => {
-    
-    //approves Fake DAI for transfer into the stableswap frontend
-    const approveDaiTransactionParameters = {
-        nonce: '0x00', // ignored by MetaMask
-
-        // gasPrice is 1 Gwei
-        gasPrice: '0x3B9ACA00', // customizable by user during MetaMask confirmation.
-        gas: '0x0186A0', // customizable by user during MetaMask confirmation.
-        to: fakeDaiAddress, // Required except during contract publications.
-        from: ethereum.selectedAddress, // must match user's active address.
-        value: '0x00', // Only required to send ether to the recipient from the initiating external account.
-        data:
-          '0x095ea7b3'
-          + fakeswapAddressPadded
-          + maxApprovalAmount, // Optional, but used for defining smart contract creation and interaction.
-        chainId: '0x7a', // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
-      };
-      
-      // txHash is a hex string
-      // As with any RPC call, it may throw an error
-      const txHash = ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [approveDaiTransactionParameters],
-      });
-
-    console.log("clicked the approve Dai button");
-});
-
-approveUsdcButton.addEventListener('click', () => {
-    
-    //approves Fake USDC for transfer into the stableswap frontend
-    const approveUsdcTransactionParameters = {
-        nonce: '0x00', // ignored by MetaMask
-
-        // gasPrice is 1 Gwei
-        gasPrice: '0x3B9ACA00', // customizable by user during MetaMask confirmation.
-        gas: '0x0186A0', // customizable by user during MetaMask confirmation.
-        to: fakeUsdcAddress, // Required except during contract publications.
-        from: ethereum.selectedAddress, // must match user's active address.
-        value: '0x00', // Only required to send ether to the recipient from the initiating external account.
-        data:
-          '0x095ea7b3'
-          + fakeswapAddressPadded
-          + maxApprovalAmount, // Optional, but used for defining smart contract creation and interaction.
-        chainId: '0x7a', // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
-      };
-      
-      // txHash is a hex string
-      // As with any RPC call, it may throw an error
-      const txHash = ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [approveUsdcTransactionParameters],
-      });
-
-    console.log("clicked the approve Dai button");
-});
-
-approveUsdtButton.addEventListener('click', () => {
-    
-    //approves Fake USDC for transfer into the stableswap frontend
-    const approveUsdtTransactionParameters = {
-        nonce: '0x00', // ignored by MetaMask
-
-        // gasPrice is 1 Gwei
-        gasPrice: '0x3B9ACA00', // customizable by user during MetaMask confirmation.
-        gas: '0x0186A0', // customizable by user during MetaMask confirmation.
-        to: fakeUsdtAddress, // Required except during contract publications.
-        from: ethereum.selectedAddress, // must match user's active address.
-        value: '0x00', // Only required to send ether to the recipient from the initiating external account.
-        data:
-          '0x095ea7b3'
-          + fakeswapAddressPadded
-          + maxApprovalAmount, // Optional, but used for defining smart contract creation and interaction.
-        chainId: '0x7a', // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
-      };
-      
-      // txHash is a hex string
-      // As with any RPC call, it may throw an error
-      const txHash = ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [approveUsdtTransactionParameters],
-      });
-
-    console.log("clicked the approve Dai button");
-});
-
-approveLPButton.addEventListener('click', () => {
-
-  const approveLPTokenTransactionParameters = {
-    nonce: '0x00', //ignored by metamask
-
-    // gasPrice is 1 gwei
-    gasPrice: '0x3B9ACA00', // customizable by user during MetaMask confirmation.
-    gas: '0x0186A0', // customizable by user during MetaMask confirmation.
-    to: fakeLPAddress, // Required except during contract publications.
-    from: ethereum.selectedAddress, // must match user's active address.
-    value: '0x00', // Only required to send ether to the recipient from the initiating external account.
-    data:
-      '0x095ea7b3'
-      + fakeswapAddressPadded
-      + maxApprovalAmount, // Optional, but used for defining smart contract creation and interaction.
-    chainId: '0x7a', // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
-  };
+async function connectToMetamask(button) {
+  button.disabled = true;
+  console.log("Attempting to connect to Metamask...");
+  await new Promise(r => setTimeout(r, 1000));
   
-  const txHash = ethereum.request({
-    method: 'eth_sendTransaction',
-    params: [approveLPTokenTransactionParameters],
-  });
+  const transactionStatus = document.getElementById('transactionStatus');
+  
+  try {
+    if (!ethereum) {
+      throw new ReferenceError("Could not access Metamask browser extension.");
+    }
+    accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    
+    transactionStatus.innerHTML = "Connected to Metamask.";
+    console.log("Metamask connection succeeded.");
+    
+    tabs.connection.hidden = true;
+    tabs.approval.hidden = false;
+  } catch (error) {
+    transactionStatus.innerHTML = "Metamask connection failed. See console log for details."
+    console.error(`Failed to connect to metamask: ${error}`);
+  } finally {
+    button.disabled = false;
+  }
+}
 
-  console.log("clicked the approve LP tokens button");
-});
+function continueToActionsTab() {
+  tabs.approval.hidden = true;
+  tabs.actions.hidden = false;
+}
+
 
 depositButton.addEventListener('click', () => {
 
@@ -285,11 +192,6 @@ depositButton.addEventListener('click', () => {
 showSelectedButton.addEventListener('click', () => {
     getLPBalance();
 });
-
-async function getAccount() {
-    accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    transactionStatus.innerHTML = "Metamask connected";
-}
 
 async function getLPBalance() {
 
