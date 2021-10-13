@@ -5,20 +5,57 @@ const tabs = {
   connection: document.getElementById("metamaskConnection"),
   approval: document.getElementById("tokenApproval"),
   actions: document.getElementById("actions")
+};
+
+const actionSectionTitles = [
+  document.getElementById("depositTitle"),
+  document.getElementById("swapTitle"),
+  document.getElementById("withdrawTitle"),
+  document.getElementById("rewardsTitle")
+];
+
+const actionSections = [
+  document.getElementById("deposit"),
+  document.getElementById("swap"),
+  document.getElementById("withdraw"),
+  document.getElementById("rewards")
+];
+
+function selectSection(sectionNumber) {
+  actionSections.forEach(element => {
+    element.hidden = true;
+  });
+  actionSections[sectionNumber].hidden = false;
+  actionSectionTitles.forEach(element => {
+    element.classList.remove("activeSection");
+  })
+  actionSectionTitles[sectionNumber].classList.add("activeSection");
 }
 
-const actionSectionTitles = {
-  deposit: document.getElementById("depositTitle"),
-  swap: document.getElementById("swapTitle"),
-  withdraw: document.getElementById("withdrawTitle"),
-  rewards: document.getElementById("rewardsTitle")
-}
+const withdrawalSubsectionTitles = [
+  document.getElementById("balancedWithdrawalTitle"),
+  document.getElementById("imbalancedWithdrawalTitle"),
+  document.getElementById("singleWithdrawalTitle")
+];
 
-const actionSections = {
-  deposit: document.getElementById("deposit"),
-  swap: document.getElementById("swap"),
-  withdraw: document.getElementById("withdraw"),
-  rewards: document.getElementById("rewards")
+const withdrawalSubsections = [
+  document.getElementById("balancedWithdrawal"),
+  document.getElementById("imbalancedWithdrawal"),
+  document.getElementById("singleWithdrawal")
+];
+
+function selectSubsection(subsectionNumber) {
+  withdrawalSubsections.forEach(element => {
+    element.hidden = true;
+  });
+  withdrawalSubsections[subsectionNumber].hidden = false;
+  withdrawalSubsectionTitles.forEach(element => {
+    element.classList.remove("activeSubsection");
+  })
+  withdrawalSubsectionTitles[subsectionNumber].classList.add("activeSubection");
+  if (subsectionNumber === 0) { 
+    getLPBalance();
+  }
 }
 
 // deposit button
@@ -83,15 +120,19 @@ async function connectToMetamask(button) {
     
     transactionStatus.innerHTML = "Connected to Metamask.";
     console.log("Metamask connection succeeded.");
-    
-    tabs.connection.hidden = true;
-    tabs.approval.hidden = false;
+    continueToApprovalTab();
   } catch (error) {
     transactionStatus.innerHTML = "Metamask connection failed. See console log for details."
     console.error(`Failed to connect to metamask: ${error}`);
   } finally {
     button.disabled = false;
   }
+}
+
+function continueToApprovalTab() {
+  tabs.connection.hidden = true;
+  tabs.approval.hidden = false;
+  tabs.actions.hidden = true;
 }
 
 async function approveToken(button, tokenName, address, statusElementId) {
@@ -149,10 +190,10 @@ async function approveLP(button) {
 
 
 function continueToActionsTab() {
+  tabs.connection.hidden = true;
   tabs.approval.hidden = true;
   tabs.actions.hidden = false;
 }
-
 
 depositButton.addEventListener('click', () => {
 
@@ -257,10 +298,6 @@ depositButton.addEventListener('click', () => {
     DaiDepositConfirmation.innerHTML = "You clicked deposit! I saw it!";
 });
 
-showSelectedButton.addEventListener('click', () => {
-    getLPBalance();
-});
-
 async function getLPBalance() {
 
     // construct tx params
@@ -279,8 +316,7 @@ async function getLPBalance() {
     }); 
     
     // TODO: rename elements from "selectedConfirmation" to something regarding getting LP balance
-    selectedConfirmation.innerHTML = "Your LP Token balance: " + (parseInt(LPBalance,16) / 1e+18);
-
+    document.getElementById('LPTokenBalance').innerHTML = "Your LP Token balance: " + (parseInt(LPBalance,16) / 1e+18);
 }
 
 // TODO: build a withdrawal button
@@ -499,13 +535,10 @@ withdrawSingleButton.addEventListener('click', () => {
 });
 
 async function doSingleWithdraw() {
-
   let tokenIndexIn = singleTokenIndex.value;
   let tokenIndexHex = tokenIndexIn.toString(16);  //need this to ensure some jerk didn't put in like 0.7 or something. Should round to hex whole number
 
   let tokenAmountIn = singleTokenAmount.value;
-  
-  if(tokenIndexIn > 2) return;  //input sanitized B-]
   
   amountInHex = (tokenAmountIn * 1e+18).toString(16); //scaled by 1e18 cuz DAI be likethat
   
