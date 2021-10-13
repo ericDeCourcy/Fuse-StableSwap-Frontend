@@ -69,8 +69,8 @@
 				<label for="UsdtToDeposit">Fake-USDT To Deposit:</label>
 				<input type="number" id="UsdtToDeposit" name="UsdtToDeposit" min="0" value="0">
 			</form>
-			<button id="depositButton" class="majorButton">Deposit</button>	
-			<div id="DaiDepositConfirmation" class="status"></div>
+			<button id="depositButton" class="majorButton" onclick="deposit(this)">Deposit</button>	
+			<div id="depositStatus" class="status">Deposit not initiated.</div>
 		</div>
 		
 		<div id="swap" class="section">
@@ -79,8 +79,7 @@
 			</div>
 			<form>
 				<label for="swapAmountIn">Tokens in for swap:</label>
-				<input type="number" id="SwapAmountIn" name="SwapAmountIn" min="0" value="0">
-				<!-- <span class="validity"></span> -->
+				<input type="number" id="swapAmountIn" name="swapAmountIn" min="0" value="0">
 				<label for="swapTokenIndexIn">Token for swap Input:</label>
 				<select id="swapTokenIndexIn" name="swapTokenIndexIn">
 					<option value=0>Fake-DAI</option>
@@ -94,7 +93,8 @@
 					<option value=2>Fake-USDT</option>
 				</select>
 			</form>
-			<button id="swapButton" class="majorButton">Swap</button>
+			<button id="swapButton" class="majorButton" onclick="swap(this)">Swap</button>
+			<div id="swapStatus" class="status">Swap not initiated.</div>
 		</div>
 
 		<div id="withdraw" class="section" hidden>
@@ -113,7 +113,8 @@
 					<label for="withdrawAmountInput">LP Tokens To Withdraw:</label>
 					<input type="number" id="withdrawAmountInput" name="withdrawAmountInput" min="0" value="0">
 				</form>
-				<button id="withdrawBalancedButton" class="majorButton">Withdraw Balanced</button>
+				<button id="withdrawBalancedButton" class="majorButton" onclick="withdrawBalanced(this)">Withdraw Balanced</button>
+				<div id="withdrawBalancedStatus" class="status">Balanced Withdrawal not initiated.</div>
 			</div>
 
 			<div id="imbalancedWithdrawal" class="subsection" hidden>
@@ -129,7 +130,8 @@
 					<label for="imbalancedUSDTOut">USDT desired:</label>
 					<input type="number" id="imbalancedUSDTOut" name="imbalancedUSDTOut" min="0" value="0">
 				</form>
-				<button id="withdrawImbalancedButton" class="majorButton">Withdraw Imbalanced</button>	
+				<button id="withdrawImbalancedButton" class="majorButton" onclick="withdrawImbalanced(this)">Withdraw Imbalanced</button>
+				<div id="withdrawImbalancedStatus" class="status">Imbalanced Withdrawal not initiated.</div>
 			</div>
 			
 			<div id="singleWithdrawal" class="subsection" hidden>
@@ -146,7 +148,8 @@
 					<label for="singleTokenAmount">Amount Of LP Token To Withdraw:</label>
 					<input type="number" id="singleTokenAmount" name="singleTokenAmount" min="0" value="0">
 				</form>
-				<button id="withdrawSingleButton" class="majorButton">Withdraw Single Token</button>	
+				<button id="withdrawSingleButton" class="majorButton" onclick="withdrawSingleToken(this)">Withdraw Single Token</button>
+				<div id="singleWithdrawStatus" class="status">Single Token Withdrawal not initiated.</div>
 			</div>
 		</div>
 
@@ -154,7 +157,8 @@
 			<div class="instructions">
 				Over time, your LP token balance will entitle you to rewards. All you need to do to get rewards is own LP tokens, then click this button to claim them!
 			</div>
-			<button id="getRewardsButton" class="majorButton">Claim Rewards</button>
+			<button id="getRewardsButton" class="majorButton" onclick="claimRewards(this)">Claim Rewards</button>
+			<div id="getRewardsStatus" class="status">Claim Rewards not initiated.</div>
 		</div>
 	</div>
 	
