@@ -1,3 +1,5 @@
+import { fakePool } from './pools.js';
+
 // accounts (for metamask)
 let accounts = [];
 
@@ -58,7 +60,7 @@ function selectSubsection(subsectionNumber) {
   }
 }
 
-const fakeLPAddress =           '0x410a69Cdb3320594019Ef14A7C3Fb4Abaf6e962e';
+const fakeLPAddress = '0x410a69Cdb3320594019Ef14A7C3Fb4Abaf6e962e';
 const arrayLength = '3'.padStart(64, '0');
 const minAmount = '1'.padStart(64, '0');
 // TODO eric can you rename these to something semantic plz
