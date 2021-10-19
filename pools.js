@@ -37,14 +37,25 @@ class Pool {
             </select>`;
     }
 
-    getInputTokenAmountHTML(labelText, elementName) {
+    getInputTokenAmountHTML(labelText, partialElementName) {
         let inputHTML = '';
         this.poolTokens.forEach((token) => {
-            const thisElementName = token.name + elementName;
-            inputHTML += `<label for="${thisElementName}">${token.name} ${labelText}</label>
-                <input id="${thisElementName}" name="${thisElementName}" type="number" min="0" value="0" />`;
+            const elementName = token.name + partialElementName;
+            inputHTML += `<label for="${elementName}">${token.name} ${labelText}</label>
+                <input id="${elementName}" name="${elementName}" type="number" min="0" value="0" />`;
         });
         return inputHTML;
+    }
+
+    getTokenValuesFromElements(partialElementName) {
+        // TODO alanna - l2code
+        let tokenValues = '';
+        activePool.poolTokens.forEach((token) => {
+            const elementName = token.name + partialElementName;
+            const elementValue = document.getElementById(elementName).value;
+            tokenValues += token.scaleAndPad(elementValue);
+        });
+        return tokenValues;
     }
 
     getTransactionParams(transactionData) {

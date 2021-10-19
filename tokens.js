@@ -6,12 +6,8 @@ class Token {
         this.decimals = decimals;
     }
 
-    scale(value) {
-        return value * this.decimals;
-    }
-
     scaleAndPad(value) {
-        return this.scale(value).toString(16).padStart(64, '0');
+        return (value * this.decimals).toString(16).padStart(64, '0');
     }
 }
 

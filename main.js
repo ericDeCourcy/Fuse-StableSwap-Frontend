@@ -61,12 +61,17 @@ function selectSubsection(subsectionNumber) {
   }
 }
 
-const arrayLength = '3'.padStart(64, '0');
-const minAmount = '1'.padStart(64, '0');
+
+function getPaddedHex(input) {
+  return input.toString(16).padStart(64, '0');
+}
+
+const tokenArrayLengthPadded = getPaddedHex(activePool.poolTokens.length);
+const minAmountPadded = getPaddedHex('1');
 // TODO Eric - figure out what this is
-const txLengthMaybe = '60'.padStart(64, '0');
-const deadline6ca33f73 = '6ca33f73'.padStart(64, '0'); // deadline of 2027-ish
-const deadline62eb4611 = '62eb4611'.padStart(64, '0');
+const txLengthMaybe = getPaddedHex('60');
+const deadline6ca33f73Padded = getPaddedHex('6ca33f73'); // deadline of 2027-ish
+const deadline62eb4611Padded = getPaddedHex('62eb4611');
 
 
 function showAttempting(statusElement, loggingKeyword) {
@@ -183,17 +188,6 @@ function populateActionOptions() {
     'desired:', 'ImbalancedOut');
 }
 
-function getPaddedHexDai(inputElementId) {
-  return getPaddedHex(document.getElementById(inputElementId).value * 1e+18);
-}
-
-function getPaddedHexUsd(inputElementId) {
-  return getPaddedHex(document.getElementById(inputElementId).value * 1e+6);
-}
-
-function getPaddedHex(input) {
-  return input.toString(16).padStart(64, '0');
-}
 
 async function deposit(button) {
   button.disabled = true;
@@ -204,12 +198,10 @@ async function deposit(button) {
   let transactionData = 
     '0x4d49e87d' // function signature
     + txLengthMaybe
-    + minAmount
-    + deadline62eb4611
-    + arrayLength
-    + getPaddedHexDai('Fake-DAIToDeposit')
-    + getPaddedHexUsd('Fake-USDCToDeposit')
-    + getPaddedHexUsd('Fake-USDTToDeposit');
+    + minAmountPadded
+    + deadline62eb4611Padded
+    + tokenArrayLengthPadded
+    + activePool.getTokenValuesFromElements('ToDeposit');
 
   //approves Fake USDC for transfer into the stableswap frontend
   const transactionParams = activePool.getTransactionParams(transactionData);
@@ -271,8 +263,8 @@ async function swap(button) {
     + getPaddedHex(tokenIndexIn) 
     + getPaddedHex(tokenIndexOut) 
     + getPaddedHex(swapAmountScaled) 
-    + minAmount 
-    + deadline6ca33f73;
+    + minAmountPadded 
+    + deadline6ca33f73Padded;
 
   const transactionParams = activePool.getTransactionParams(transactionData);
 
@@ -297,10 +289,10 @@ async function withdrawBalanced(button) {
     '0x31cd52b0'        // function signature
     + withdrawAmountHex
     + txLengthMaybe
-    + deadline62eb4611
-    + arrayLength
+    + deadline62eb4611Padded
+    + tokenArrayLengthPadded
     // min amount to receive X number of pool tokens
-    + minAmount.repeat(activePool.poolTokens.length);
+    + minAmountPadded.repeat(activePool.poolTokens.length);
 
   const transactionParams = activePool.getTransactionParams(transactionData);
 
@@ -320,8 +312,9 @@ async function withdrawImbalanced(button) {
     + ''.padStart(24, '0') 
     + ethereum.selectedAddress.slice(2,);
 
+  let LPBalance = 0;
   try {
-    const LPBalance = await ethereum.request({
+    LPBalance = await ethereum.request({
       method: 'eth_call',
       params:  [{
         to: activePool.LPToken.address,
@@ -341,12 +334,9 @@ async function withdrawImbalanced(button) {
     '0x84cdd9bc'                              // function signature
     + txLengthMaybe
     + LPBalanceFormatted                      // max burn amount
-    + deadline6ca33f73
-    + arrayLength
-    + getPaddedHexDai('Fake-DAIImbalancedOut')
-    + getPaddedHexUsd('Fake-USDCImbalancedOut')
-    + getPaddedHexUsd('Fake-USDTImbalancedOut');
-
+    + deadline6ca33f73Padded
+    + tokenArrayLengthPadded
+    + activePool.getTokenValuesFromElements('ImbalancedOut');
   const transactionParams = activePool.getTransactionParams(transactionData);
   
   await ethRequest(transactionParams, statusElement, 'Imbalanced Withdrawal');
@@ -377,7 +367,7 @@ async function withdrawSingleToken(button) {
     '0x3e3a1560'      // function signature
     + amountInPadded  // amount LP in
     + indexInPadded   // token index
-    + minAmount;      // min out
+    + minAmountPadded;      // min out
   
   const transactionParams = activePool.getTransactionParams(transactionData);
 
