@@ -245,18 +245,7 @@ async function swap(button) {
   let tokenIndexIn = swapTokenIndexIn.value;
   let tokenIndexOut = swapTokenIndexOut.value;
 
-  // amountIn
-  swapAmount = swapAmountIn.value;
-
-  let swapAmountScaled = 0;
-  if(tokenIndexIn == 0)
-  {
-    swapAmountScaled = swapAmount * 1e+18;
-  }
-  else  // either usdc or usdt
-  {
-    swapAmountScaled = swapAmount * 1e+6;
-  }
+  let swapAmountScaled = swapAmountIn.value * activePool.poolTokens[tokenIndexIn].decimals;
   
   const transactionData = 
     '0x91695586' // function signature
@@ -352,22 +341,22 @@ async function withdrawSingleToken(button) {
   
   const singleTokenIndex = document.getElementById('singleTokenIndex');
   let tokenIndexIn = singleTokenIndex.value;
-  let tokenIndexHex = tokenIndexIn.toString(16);  //need this to ensure some jerk didn't put in like 0.7 or something. Should round to hex whole number
+  let tokenIndexHex = tokenIndexIn.toString(16); 
 
   const singleTokenAmount = document.getElementById('singleTokenAmount');
   let tokenAmountIn = singleTokenAmount.value;
   
   // this is ALWAYS scaled by 1e18 because here, we are dealing with LP tokens specifically
-  amountInHex = (tokenAmountIn * 1e+18).toString(16); //scaled by 1e18 cuz DAI be likethat
+  amountInHex = (tokenAmountIn * 1e+18).toString(16);
 
   const amountInPadded = amountInHex.padStart(64, '0');
   const indexInPadded = tokenIndexHex.padStart(64, '0');
 
   transactionData = 
-    '0x3e3a1560'      // function signature
-    + amountInPadded  // amount LP in
-    + indexInPadded   // token index
-    + minAmountPadded;      // min out
+    '0x3e3a1560'        // function signature
+    + amountInPadded    // amount LP in
+    + indexInPadded     // token index
+    + minAmountPadded;  // min out
   
   const transactionParams = activePool.getTransactionParams(transactionData);
 
