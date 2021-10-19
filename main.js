@@ -248,6 +248,8 @@ async function swap(button) {
   // amountIn
   swapAmount = swapAmountIn.value;
 
+  // TODO alanna - refactor this to use the token object to get the correct scaling factor
+  // TODO eric - if you switch pools before alanna fixes this, manually update the scaling here
   let swapAmountScaled = 0;
   if(tokenIndexIn == 0)
   {
