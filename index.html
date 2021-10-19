@@ -78,21 +78,10 @@
 			<div class="instructions">
 				Pick what token to input and what token you'd like to recieve. Then, pick how many of the input token you'd like to send in.
 			</div>
-			<form>
+			<form id="swapForm">
 				<label for="swapAmountIn">Tokens in for swap:</label>
 				<input type="number" id="swapAmountIn" name="swapAmountIn" min="0" value="0">
-				<label for="swapTokenIndexIn">Token for swap Input:</label>
-				<select id="swapTokenIndexIn" name="swapTokenIndexIn">
-					<option value=0>Fake-DAI</option>
-					<option value=1>Fake-USDC</option>
-					<option value=2>Fake-USDT</option>
-				</select>
-				<label for="swapTokenIndexOut">Token for swap Output:</label>
-				<select id="swapTokenIndexOut" name="swapTokenIndexOut">
-					<option value=0 selected>Fake-DAI</option>
-					<option value=1>Fake-USDC</option>
-					<option value=2>Fake-USDT</option>
-				</select>
+				<!-- input and output token options dynamically generated -->
 			</form>
 			<button id="swapButton" class="majorButton" onclick="swap(this)">Swap</button>
 			<div id="swapStatus" class="status">Swap not initiated.</div>
@@ -139,13 +128,8 @@
 				<div class="instructions">
 					This will burn a specified amount of LP tokens and withdraw all funds in the form of a single token.
 				</div>
-				<form>
-					<label for="singleTokenIndex">Withdrawal Token:</label>
-					<select id="singleTokenIndex" name="singleTokenIndex">
-						<option value=0 selected>Fake-DAI</option>
-						<option value=1>Fake-USDC</option>
-						<option value=2>Fake-USDT</option>
-					</select>
+				<form id="singleWithdrawalForm">
+					<!-- withdrawal token options dynamically generated -->
 					<label for="singleTokenAmount">Amount Of LP Token To Withdraw:</label>
 					<input type="number" id="singleTokenAmount" name="singleTokenAmount" min="0" value="0">
 				</form>
@@ -162,7 +146,8 @@
 			<div id="getRewardsStatus" class="status">Claim Rewards not initiated.</div>
 		</div>
 	</div>
-	
-<script src="main.js"></script>
+<script src="./tokens.js"></script>
+<script src="./pools.js"></script>
+<script src="./main.js"></script>
 </body>	
 

@@ -1,4 +1,4 @@
-import { fakePool } from './pools.js';
+/* global fakePool */
 
 // accounts (for metamask)
 let accounts = [];
@@ -182,6 +182,19 @@ function continueToActionsTab() {
   tabs.connection.hidden = true;
   tabs.approval.hidden = true;
   tabs.actions.hidden = false;
+  populateActionOptions();
+}
+
+function populateActionOptions() {
+  const swapFormElement = document.getElementById('swapForm');
+  swapFormElement.innerHTML += fakePool.getSelectTokenHTML(
+    'Token for swap input:', 'swapTokenIndexIn');
+  swapFormElement.innerHTML += fakePool.getSelectTokenHTML(
+    'Token for swap output:', 'swapTokenIndexOut');
+  const singleWithdrawalElement = document.getElementById('singleWithdrawalForm');
+  singleWithdrawalElement.innerHTML = fakePool.getSelectTokenHTML(
+    'Withdrawal Token:', 'singleTokenIndex') 
+    + singleWithdrawalElement.innerHTML;
 }
 
 // TODO fix precision losses here
