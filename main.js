@@ -61,7 +61,7 @@ function selectSubsection(subsectionNumber) {
 const fakeLPAddress =           '0x410a69Cdb3320594019Ef14A7C3Fb4Abaf6e962e';
 const arrayLength = '3'.padStart(64, '0');
 const minAmount = '1'.padStart(64, '0');
-// TODO eric can you rename these to something semantic plz
+// TODO Eric - figure out what this is
 const txLengthMaybe = '60'.padStart(64, '0');
 const deadline6ca33f73 = '6ca33f73'.padStart(64, '0'); // deadline of 2027-ish
 const deadline62eb4611 = '62eb4611'.padStart(64, '0');
@@ -182,12 +182,10 @@ function continueToActionsTab() {
   tabs.actions.hidden = false;
 }
 
-// TODO fix precision losses here
 function getPaddedHexDai(inputElementId) {
   return getPaddedHex(document.getElementById(inputElementId).value * 1e+18);
 }
 
-// TODO assess precision lossiness
 function getPaddedHexUsd(inputElementId) {
   return getPaddedHex(document.getElementById(inputElementId).value * 1e+6);
 }
@@ -223,8 +221,6 @@ async function getLPBalance() {
     // construct tx params
     let funcSig = '0x70a08231';
 
-    // TODO: does ethereum.selectedAddress have the '0x' stripped off?
-    //    we need it to not, and to have padding 0's
     let encodedBalanceTx = funcSig + ''.padStart(24, '0') + ethereum.selectedAddress.slice(2,);
 
     LPBalance = await ethereum.request({ 
@@ -248,16 +244,8 @@ async function swap(button) {
   const swapTokenIndexOut = document.getElementById('swapTokenIndexOut');
   const swapAmountIn = document.getElementById('swapAmountIn');
 
-  // TODO eric - you performed the usual input formatting in a slightly different order in this one -
-  // padding then scaling instead of vice versa. not sure if this matters. can you replace with my formatting
-  // functions as above if applicable?
   let tokenIndexIn = swapTokenIndexIn.value;
   let tokenIndexOut = swapTokenIndexOut.value;
-
-  // pad token indexes (with 63 zeros, cuz we are lazy and they should always be one digit in hex)
-  // since they should be 9 or less, we don't need to convert to hex since 0-9 is same in decimal and hex
-  tokenIndexInPadded = tokenIndexIn.padStart(64, '0');
-  tokenIndexOutPadded = tokenIndexOut.padStart(64, '0');
 
   // amountIn
   swapAmount = swapAmountIn.value;
@@ -274,8 +262,8 @@ async function swap(button) {
   
   const transactionData = 
     '0x91695586' // function signature
-    + tokenIndexInPadded 
-    + tokenIndexOutPadded 
+    + getPaddedHex(tokenIndexIn) 
+    + getPaddedHex(tokenIndexOut) 
     + getPaddedHex(swapAmountScaled) 
     + minAmount 
     + deadline6ca33f73;
@@ -298,10 +286,6 @@ async function withdrawBalanced(button) {
   let withdrawAmountScaled = withdrawAmount * 1e+18;
   let withdrawAmountHex = getPaddedHex(withdrawAmountScaled);
 
-  // set min amounts
-  // TODO: actually pick some reasonable amounts (maybe a 5% max diff...?)
-  //    might need to call 'calculate withdraw tokens'
-  // TODO: make deadline use local time plus reasonable window
   let transactionData = 
     '0x31cd52b0'        // function signature
     + withdrawAmountHex
@@ -324,14 +308,15 @@ async function withdrawImbalanced(button) {
   statusElement = document.getElementById('withdrawImbalancedStatus');
   statusElement.innerHTML = 'Attempting Imbalanced Withdrawal...';
 
-  // TODO add in optional amount of max LP tokens to burn
-  // to get max burn amount, get their LP balance and set it to that
   let encodedBalanceTx = 
     '0x70a08231' 
     + twentyFourZeroes 
     + ethereum.selectedAddress.slice(2,);
 
-  // TODO add await and error handling for this as well
+  // TODO alanna help pls - add await and error handling for this as well
+  // we don't want to continue execution until we have a value for LPBalance. 
+  // we need a value for LPBalance, cuz we gotta use it in the transactionData
+  // I **think** this will not allow execution to continue without having a value for LPBalance, but please validate this for me
   let LPBalance = await ethereum.request({ 
     method: 'eth_call',
     params:  [{
@@ -372,8 +357,7 @@ async function withdrawSingleToken(button) {
   const singleTokenAmount = document.getElementById('singleTokenAmount');
   let tokenAmountIn = singleTokenAmount.value;
   
-  // TODO eric shouldn't this be 18 or 6 depending on whether it's dai or usdX?
-  // didn't use my convenience functions bc i wasn't sure if this was a special case...
+  // this is ALWAYS scaled by 1e18 because here, we are dealing with LP tokens specifically
   amountInHex = (tokenAmountIn * 1e+18).toString(16); //scaled by 1e18 cuz DAI be likethat
 
   const amountInPadded = amountInHex.padStart(64, '0');
