@@ -362,7 +362,7 @@ async function withdrawSingleToken(button) {
   let tokenAmountIn = singleTokenAmount.value;
   
   // this is ALWAYS scaled by 1e18 because here, we are dealing with LP tokens specifically
-  amountInHex = (tokenAmountIn * 1e+18).toString(16); //scaled by 1e18 cuz DAI be likethat
+  amountInHex = (tokenAmountIn * 1e+18).toString(16); 
 
   const amountInPadded = amountInHex.padStart(64, '0');
   const indexInPadded = tokenIndexHex.padStart(64, '0');
