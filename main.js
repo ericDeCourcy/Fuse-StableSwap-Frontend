@@ -299,9 +299,8 @@ async function withdrawBalanced(button) {
     + txLengthMaybe
     + deadline62eb4611
     + arrayLength
-    + minAmount         // min DAI to recieve = 1 unit
-    + minAmount         // min USDC
-    + minAmount;        // min USDT
+    // min amount to receive X number of pool tokens
+    + minAmount.repeat(activePool.poolTokens.length);
 
   const transactionParams = activePool.getTransactionParams(transactionData);
 
