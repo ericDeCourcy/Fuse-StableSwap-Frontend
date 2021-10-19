@@ -1,4 +1,5 @@
 /* global fakePool */
+const activePool = fakePool;
 
 // accounts (for metamask)
 let accounts = [];
@@ -60,7 +61,6 @@ function selectSubsection(subsectionNumber) {
   }
 }
 
-const fakeLPAddress = '0x410a69Cdb3320594019Ef14A7C3Fb4Abaf6e962e';
 const arrayLength = '3'.padStart(64, '0');
 const minAmount = '1'.padStart(64, '0');
 // TODO eric can you rename these to something semantic plz
@@ -69,17 +69,21 @@ const deadline6ca33f73 = '6ca33f73'.padStart(64, '0'); // deadline of 2027-ish
 const deadline62eb4611 = '62eb4611'.padStart(64, '0');
 
 
-function getTransactionParams(transactionData) {
-  return {
-    nonce: '0x00',
-    gasPrice: '0x3B9ACA00', // gasPrice is 1 Gwei. customizable by user during MetaMask confirmation.
-    gas: '0x0F4240', // customizable by user during MetaMask confirmation.
-    to: '0xeADfEa5f18c1E1D5030dd352f293d78865a264a2', // fake swap address
-    from: ethereum.selectedAddress,
-    value: '0x00', // Only required to send ether to the recipient from the initiating external account.
-    data: transactionData,
-    chainId: '0x7a', // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
-  }
+function showAttempting(statusElement, loggingKeyword) {
+  const message = `Attempting ${loggingKeyword}...`;
+  console.log(message);
+  statusElement.innerHTML = message;
+}
+
+function showSuccess(statusElement, loggingKeyword) {
+  const message = `${loggingKeyword} successful!`;
+  console.log(message);
+  statusElement.innerHTML = message;
+}
+
+function showError(statusElement, loggingKeyword, error) {
+  console.error(`${loggingKeyword} failed: ${error.code} ${error.message}`);
+  statusElement.innerHTML = `${loggingKeyword} failed. See console log for details.`;
 }
 
 
@@ -89,32 +93,27 @@ async function ethRequest(params, statusElement, loggingKeyword) {
       method: 'eth_sendTransaction',
       params: [params],
     });
-    statusElement.innerHTML = `${loggingKeyword} successful!`;
+    showSuccess(statusElement, loggingKeyword);
   } catch (error) {
-    statusElement.innerHTML = `${loggingKeyword} failed. See console log for details.`;
-    console.error(`${loggingKeyword} failed: ${error.code} ${error.message}`);
+    showError(statusElement, loggingKeyword, error);
   }
 }
 
-
 async function connectToMetamask(button) {
   button.disabled = true;
-  console.log('Attempting to connect to Metamask...');
-  
-  const transactionStatus = document.getElementById('transactionStatus');
-  
+  const loggingKeyword = 'Metamask connection';
+  const statusElement = document.getElementById('transactionStatus');
+  showAttempting(statusElement, loggingKeyword);
+
   try {
     if (!ethereum) {
       throw new ReferenceError('Could not access Metamask browser extension.');
     }
     accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    
-    transactionStatus.innerHTML = 'Connected to Metamask.';
-    console.log('Metamask connection succeeded.');
+    showSuccess(statusElement, loggingKeyword);
     continueToApprovalTab();
   } catch (error) {
-    transactionStatus.innerHTML = 'Metamask connection failed. See console log for details.';
-    console.error(`Failed to connect to metamask: ${error.code} ${error.message}`);
+    showError(statusElement, loggingKeyword);
   } finally {
     button.disabled = false;
   }
@@ -129,32 +128,27 @@ function continueToApprovalTab() {
 //TODO alanna simplify this function
 async function approveToken(button, tokenName, address, statusElementId) {
   button.disabled = true;
-  console.log(`Clicked the 'Approve ${tokenName}' button.`);
+  const loggingKeyword = tokenName + ' approval';
   const statusMessage = document.getElementById(statusElementId);
-  statusMessage.innerHTML = 'Attempting to approve token...';
+  showAttempting(loggingKeyword, statusMessage);
   
   transactionData = 
     '0x095ea7b3'                                                    // function signature
-    + 'eADfEa5f18c1E1D5030dd352f293d78865a264a2'.padStart(64, '0')  // fake swap address
+    + activePool.address.replace(/^0x/, '').padStart(64, '0')       // fake swap address
     + ''.padStart(64, 'f');                                         // max amount
-  transactionParams = getTransactionParams(transactionData);
+  transactionParams = activePool.getTransactionParams(transactionData);
   transactionParams['to'] = address;
   transactionParams['gas'] = '0x0186A0';
   
-  let message = '';
   try {
-    // request returns transaction hash
     await ethereum.request({
       method: 'eth_sendTransaction',
       params: [transactionParams],
     });
-    message = `Successfully approved ${tokenName}.`; 
+    showSuccess(statusElement, loggingKeyword)
   } catch(error) {
-    message = `Could not approve ${tokenName}: ${error}`;
-    console.error(message);
+    showError(statusElement, loggingKeyword);
     button.disabled = false;
-  } finally {
-    statusMessage.innerHTML = message;
   }
 }
 
@@ -174,7 +168,7 @@ async function approveUsdt(button) {
 }
 
 async function approveLP(button) {
-  await approveToken(button, 'LP Token', fakeLPAddress, 'approveLPStatus');
+  await approveToken(button, 'LP Token', activePool.LPTokenAddress, 'approveLPStatus');
 }
 
 
@@ -187,21 +181,21 @@ function continueToActionsTab() {
 
 function populateActionOptions() {
   const swapForm = document.getElementById('swapForm');
-  swapForm.innerHTML += fakePool.getSelectTokenHTML(
+  swapForm.innerHTML += activePool.getSelectTokenHTML(
     'Token for swap input:', 'swapTokenIndexIn');
-  swapForm.innerHTML += fakePool.getSelectTokenHTML(
+  swapForm.innerHTML += activePool.getSelectTokenHTML(
 'Token for swap output:', 'swapTokenIndexOut');
   
   const singleWithdrawalForm = document.getElementById('singleWithdrawalForm');
-  singleWithdrawalForm.innerHTML = fakePool.getSelectTokenHTML(
+  singleWithdrawalForm.innerHTML = activePool.getSelectTokenHTML(
     'Withdrawal Token:', 'singleTokenIndex') + singleWithdrawalForm.innerHTML;
   
   const depositForm = document.getElementById('depositForm');
-  depositForm.innerHTML = fakePool.getInputTokenAmountHTML(
+  depositForm.innerHTML = activePool.getInputTokenAmountHTML(
     'to deposit:', 'ToDeposit');
 
   const imbalancedWithdrawalForm = document.getElementById('imbalancedWithdrawalForm');
-  imbalancedWithdrawalForm.innerHTML = fakePool.getInputTokenAmountHTML(
+  imbalancedWithdrawalForm.innerHTML = activePool.getInputTokenAmountHTML(
     'desired:', 'ImbalancedOut');
 }
 
@@ -221,8 +215,9 @@ function getPaddedHex(input) {
 
 async function deposit(button) {
   button.disabled = true;
+  const loggingKeyword = 'Deposit';
   statusElement = document.getElementById('depositStatus');
-  statusElement.innerHTML = 'Attempting deposit...';
+  showAttempting(loggingKeyword, statusElement);
   
   let transactionData = 
     '0x4d49e87d' // function signature
@@ -235,9 +230,9 @@ async function deposit(button) {
     + getPaddedHexUsd('Fake-USDTToDeposit');
 
   //approves Fake USDC for transfer into the stableswap frontend
-  const transactionParams = getTransactionParams(transactionData);
+  const transactionParams = activePool.getTransactionParams(transactionData);
 
-  await ethRequest(transactionParams, statusElement, 'Deposit');
+  await ethRequest(transactionParams, statusElement, loggingKeyword);
   button.disabled = false;
 }
 
@@ -253,7 +248,7 @@ async function getLPBalance() {
     LPBalance = await ethereum.request({ 
       method: 'eth_call',
       params:  [{
-        to: fakeLPAddress,
+        to: activePool.LPTokenAddress,
         data: encodedBalanceTx
       }]
     }); 
@@ -264,8 +259,9 @@ async function getLPBalance() {
 
 async function swap(button) {
   button.disabled = true;
+  const loggingKeyword = 'Swap';
   statusElement = document.getElementById('swapStatus');
-  statusElement.innerHTML = 'Attempting Swap...';
+  showAttempting(loggingKeyword, statusElement);
 
   const swapTokenIndexIn = document.getElementById('swapTokenIndexIn');
   const swapTokenIndexOut = document.getElementById('swapTokenIndexOut');
@@ -303,17 +299,18 @@ async function swap(button) {
     + minAmount 
     + deadline6ca33f73;
 
-  const transactionParams = getTransactionParams(transactionData);
+  const transactionParams = activePool.getTransactionParams(transactionData);
 
-  await ethRequest(transactionParams, statusElement, 'Swap');
+  await ethRequest(transactionParams, statusElement, loggingKeyword);
   button.disabled = false;
 }
 
 
 async function withdrawBalanced(button) {
   button.disabled = true;
+  const loggingKeyword = 'Balanced Withdrawal';
   statusElement = document.getElementById('withdrawBalancedStatus');
-  statusElement.innerHTML = 'Attempting Balanced Withdrawal...';
+  showAttempting(loggingKeyword, statusElement);
 
   // get desired amount of LP tokens to withdraw
   let withdrawAmount = withdrawAmountInput.value;
@@ -335,9 +332,9 @@ async function withdrawBalanced(button) {
     + minAmount         // min USDC
     + minAmount;        // min USDT
 
-  const transactionParams = getTransactionParams(transactionData);
+  const transactionParams = activePool.getTransactionParams(transactionData);
 
-  await ethRequest(transactionParams, statusElement, 'Balanced Withdrawal');
+  await ethRequest(transactionParams, statusElement, loggingKeyword);
   button.disabled = false;
 }
 
@@ -345,7 +342,7 @@ async function withdrawBalanced(button) {
 async function withdrawImbalanced(button) {
   button.disabled = true;
   statusElement = document.getElementById('withdrawImbalancedStatus');
-  statusElement.innerHTML = 'Attempting Imbalanced Withdrawal...';
+  showAttempting(statusElement, loggingKeyword);
 
   // TODO add in optional amount of max LP tokens to burn
   // to get max burn amount, get their LP balance and set it to that
@@ -358,7 +355,7 @@ async function withdrawImbalanced(button) {
   let LPBalance = await ethereum.request({ 
     method: 'eth_call',
     params:  [{
-      to: fakeLPAddress,
+      to: activePool.LPTokenAddress,
       data: encodedBalanceTx
     }]
   }); 
@@ -376,7 +373,7 @@ async function withdrawImbalanced(button) {
     + getPaddedHexUsd('Fake-USDCImbalancedOut')
     + getPaddedHexUsd('Fake-USDTImbalancedOut');
 
-  const transactionParams = getTransactionParams(transactionData);
+  const transactionParams = activePool.getTransactionParams(transactionData);
   
   await ethRequest(transactionParams, statusElement, 'Imbalanced Withdrawal');
   button.disabled = false;
@@ -385,8 +382,9 @@ async function withdrawImbalanced(button) {
 
 async function withdrawSingleToken(button) {
   button.disabled = true;
+  const loggingKeyword = 'Single Token Withdrawal';
   statusElement = document.getElementById('singleWithdrawStatus');
-  statusElement.innerHTML = 'Attempting Single Token Withdrawal...';
+  showAttempting(statusElement, loggingKeyword);
   
   const singleTokenIndex = document.getElementById('singleTokenIndex');
   let tokenIndexIn = singleTokenIndex.value;
@@ -408,22 +406,22 @@ async function withdrawSingleToken(button) {
     + indexInPadded   // token index
     + minAmount;      // min out
   
-  const transactionParams = getTransactionParams(transactionData);
+  const transactionParams = activePool.getTransactionParams(transactionData);
 
-  await ethRequest(transactionParams, statusElement, 'Single Token Withdrawal');
+  await ethRequest(transactionParams, statusElement, loggingKeyword);
   button.disabled = false;
 }
 
 
 async function claimRewards(button) {
   button.disabled = true;
+  const loggingKeyword = 'Claim Rewards';
   statusElement = document.getElementById('getRewardsStatus');
-  statusElement.innerHTML = 'Attempting to Claim Rewards...';
+  showAttempting(statusElement, loggingKeyword);
 
   const rewardClaimMessageData = '0xc00007b00000000000000000000000001d7216e115f8884016004e3f390d824f0cec4afc';
-  const transactionParams = getTransactionParams(rewardClaimMessageData);
-  transactionParams['to'] = '0x82cCDecF87141190F6A69321FB88F040aff83B08';
+  const transactionParams = activePool.getRewardTransactionParams(rewardClaimMessageData);
 
-  ethRequest(transactionParams, statusElement, 'Claim Rewards');
+  ethRequest(transactionParams, statusElement, loggingKeyword);
   button.disabled = false;
 }

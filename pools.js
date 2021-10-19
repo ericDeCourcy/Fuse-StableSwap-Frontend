@@ -1,9 +1,9 @@
 /* global tokens */
 
 class Pool {
-    constructor(address, lpTokenAddress, rewardsContractAddress, tokens) {
+    constructor(address, LPTokenAddress, rewardsContractAddress, tokens) {
         this.address = address;
-        this.lpTokenAddress = lpTokenAddress;
+        this.LPTokenAddress = LPTokenAddress;
         this.rewardsContractAddress = rewardsContractAddress;
         this.tokens = tokens;
     }
@@ -29,6 +29,25 @@ class Pool {
                 <input id="${thisElementName}" name="${thisElementName}" type="number" min="0" value="0" />`;
         });
         return inputHTML;
+    }
+
+    getTransactionParams(transactionData) {
+        return {
+          nonce: '0x00',
+          gasPrice: '0x3B9ACA00', // gasPrice is 1 Gwei. customizable by user during MetaMask confirmation.
+          gas: '0x0F4240', // customizable by user during MetaMask confirmation.
+          to: this.address, // fake swap address
+          from: ethereum.selectedAddress,
+          value: '0x00', // Only required to send ether to the recipient from the initiating external account.
+          data: transactionData,
+          chainId: '0x7a', // Used to prevent transaction reuse across blockchains. Auto-filled by MetaMask.
+        }
+    }
+
+    getRewardsTransactionParams(transactionData) {
+        const transactionParams = this.getTransactionParams(transactionData);
+        transactionParams['to'] = this.rewardsContractAddress;
+        return transactionParams;
     }
 }
 
