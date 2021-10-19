@@ -186,15 +186,23 @@ function continueToActionsTab() {
 }
 
 function populateActionOptions() {
-  const swapFormElement = document.getElementById('swapForm');
-  swapFormElement.innerHTML += fakePool.getSelectTokenHTML(
+  const swapForm = document.getElementById('swapForm');
+  swapForm.innerHTML += fakePool.getSelectTokenHTML(
     'Token for swap input:', 'swapTokenIndexIn');
-  swapFormElement.innerHTML += fakePool.getSelectTokenHTML(
-    'Token for swap output:', 'swapTokenIndexOut');
-  const singleWithdrawalElement = document.getElementById('singleWithdrawalForm');
-  singleWithdrawalElement.innerHTML = fakePool.getSelectTokenHTML(
-    'Withdrawal Token:', 'singleTokenIndex') 
-    + singleWithdrawalElement.innerHTML;
+  swapForm.innerHTML += fakePool.getSelectTokenHTML(
+'Token for swap output:', 'swapTokenIndexOut');
+  
+  const singleWithdrawalForm = document.getElementById('singleWithdrawalForm');
+  singleWithdrawalForm.innerHTML = fakePool.getSelectTokenHTML(
+    'Withdrawal Token:', 'singleTokenIndex') + singleWithdrawalForm.innerHTML;
+  
+  const depositForm = document.getElementById('depositForm');
+  depositForm.innerHTML = fakePool.getInputTokenAmountHTML(
+    'to deposit:', 'ToDeposit');
+
+  const imbalancedWithdrawalForm = document.getElementById('imbalancedWithdrawalForm');
+  imbalancedWithdrawalForm.innerHTML = fakePool.getInputTokenAmountHTML(
+    'desired:', 'ImbalancedOut');
 }
 
 // TODO fix precision losses here
@@ -222,9 +230,9 @@ async function deposit(button) {
     + minAmount
     + deadline62eb4611
     + arrayLength
-    + getPaddedHexDai('DaiToDeposit')
-    + getPaddedHexUsd('UsdcToDeposit')
-    + getPaddedHexUsd('UsdtToDeposit');
+    + getPaddedHexDai('Fake-DAIToDeposit')
+    + getPaddedHexUsd('Fake-USDCToDeposit')
+    + getPaddedHexUsd('Fake-USDTToDeposit');
 
   //approves Fake USDC for transfer into the stableswap frontend
   const transactionParams = getTransactionParams(transactionData);
@@ -343,7 +351,7 @@ async function withdrawImbalanced(button) {
   // to get max burn amount, get their LP balance and set it to that
   let encodedBalanceTx = 
     '0x70a08231' 
-    + twentyFourZeroes 
+    + ''.padStart(24, '0')
     + ethereum.selectedAddress.slice(2,);
 
   // TODO add await and error handling for this as well
@@ -364,9 +372,9 @@ async function withdrawImbalanced(button) {
     + LPBalanceFormatted                      // max burn amount
     + deadline6ca33f73
     + arrayLength
-    + getPaddedHexDai('imbalancedDAIOut')
-    + getPaddedHexUsd('imbalancedUSDCOut')
-    + getPaddedHexUsd('imbalancedUSDTOut');
+    + getPaddedHexDai('Fake-DAIImbalancedOut')
+    + getPaddedHexUsd('Fake-USDCImbalancedOut')
+    + getPaddedHexUsd('Fake-USDTImbalancedOut');
 
   const transactionParams = getTransactionParams(transactionData);
   

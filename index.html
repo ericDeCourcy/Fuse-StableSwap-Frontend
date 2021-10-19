@@ -62,13 +62,8 @@
 			<div class="instructions">
 				Input amounts and then click Deposit. Make sure your tokens are approved!
 			</div>
-			<form>
-				<label for="DaiToDeposit">Fake-DAI To Deposit:</label>
-				<input type="number" id="DaiToDeposit" name="DaiToDeposit" min="0" value="0">
-				<label for="UsdcToDeposit">Fake-USDC To Deposit:</label>
-				<input type="number" id="UsdcToDeposit" name="UsdcToDeposit" min="0" value="0">
-				<label for="UsdtToDeposit">Fake-USDT To Deposit:</label>
-				<input type="number" id="UsdtToDeposit" name="UsdtToDeposit" min="0" value="0">
+			<form id="depositForm">
+				<!-- pool token inputs dynamically generated -->
 			</form>
 			<button id="depositButton" class="majorButton" onclick="deposit(this)">Deposit</button>	
 			<div id="depositStatus" class="status">Deposit not initiated.</div>
@@ -112,13 +107,8 @@
 					This will give the "desired" amounts of each tokens, burning the appropriate number of LP tokens. Keep in mind that this may burn up to all of your LP tokens.
 					<br/>Make sure your LP tokens are approved!
 				</div>
-				<form>
-					<label for="imbalancedDAIOut">DAI desired:</label>
-					<input type="number" id="imbalancedDAIOut" name="imbalancedDAIOut" min="0" value="0">
-					<label for="imbalancedUSDCOut">USDC desired:</label>
-					<input type="number" id="imbalancedUSDCOut" name="imbalancedUSDCOut" min="0" value="0">
-					<label for="imbalancedUSDTOut">USDT desired:</label>
-					<input type="number" id="imbalancedUSDTOut" name="imbalancedUSDTOut" min="0" value="0">
+				<form id="imbalancedWithdrawalForm">
+					<!-- pool token inputs dynamically generated -->
 				</form>
 				<button id="withdrawImbalancedButton" class="majorButton" onclick="withdrawImbalanced(this)">Withdraw Imbalanced</button>
 				<div id="withdrawImbalancedStatus" class="status">Imbalanced Withdrawal not initiated.</div>

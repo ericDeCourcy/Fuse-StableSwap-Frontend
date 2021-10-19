@@ -9,19 +9,27 @@ class Pool {
     }
 
     getSelectTokenHTML(labelText, elementName) {
-        let optionsHtml = '';
+        let optionsHTML = '';
         this.tokens.forEach((token) => {
-            optionsHtml += `<option value=${token.id}>
+            optionsHTML += `<option value=${token.id}>
                     ${token.name}
                 </option>`;
         });
         return `<label for="${elementName}">${labelText}</label>
             <select id="${elementName}" name="${elementName}">
-                ${optionsHtml}
+                ${optionsHTML}
             </select>`;
     }
 
-
+    getInputTokenAmountHTML(labelText, elementName) {
+        let inputHTML = '';
+        this.tokens.forEach((token) => {
+            const thisElementName = token.name + elementName;
+            inputHTML += `<label for="${thisElementName}">${token.name} ${labelText}</label>
+                <input id="${thisElementName}" name="${thisElementName}" type="number" min="0" value="0" />`;
+        });
+        return inputHTML;
+    }
 }
 
 const fakePool = new Pool(
