@@ -58,7 +58,7 @@ function selectSubsection(subsectionNumber) {
   }
 }
 
-const fakeLPAddress =           '0x410a69Cdb3320594019Ef14A7C3Fb4Abaf6e962e';
+const fakeLPAddress = '0x410a69Cdb3320594019Ef14A7C3Fb4Abaf6e962e';
 const arrayLength = '3'.padStart(64, '0');
 const minAmount = '1'.padStart(64, '0');
 // TODO Eric - figure out what this is
@@ -305,27 +305,31 @@ async function withdrawBalanced(button) {
 
 async function withdrawImbalanced(button) {
   button.disabled = true;
+  const loggingKeyword = 'Imbalanced Withdrawal';
   statusElement = document.getElementById('withdrawImbalancedStatus');
-  statusElement.innerHTML = 'Attempting Imbalanced Withdrawal...';
+  statusElement.innerHTML = `Attempting ${loggingKeyword}...`;
 
   let encodedBalanceTx = 
     '0x70a08231' 
-    + twentyFourZeroes 
+    + ''.padStart(24, 0) 
     + ethereum.selectedAddress.slice(2,);
 
-  // TODO alanna help pls - add await and error handling for this as well
-  // we don't want to continue execution until we have a value for LPBalance. 
-  // we need a value for LPBalance, cuz we gotta use it in the transactionData
-  // I **think** this will not allow execution to continue without having a value for LPBalance, but please validate this for me
-  let LPBalance = await ethereum.request({ 
-    method: 'eth_call',
-    params:  [{
-      to: fakeLPAddress,
-      data: encodedBalanceTx
-    }]
-  }); 
+  try {
+    const LPBalance = await ethereum.request({
+      method: 'eth_call',
+      params:  [{
+        to: fakeLPAddress,
+        data: encodedBalanceTx
+      }]
+    }); 
+    console.log(`LP Balance = ${LPBalance}.`);
+  } catch (error) {
+    statusElement.innerHTML = `${loggingKeyword} failed: Unable to get LPBalance. See console log for details.`;
+    console.error(`${loggingKeyword} failed: Unable to get LPBalance: ${error.code} ${error.message}`);
+    button.disabled = false;
+    return;
+  }
 
-  console.log('LP Balance = ' + LPBalance);
   let LPBalanceFormatted = LPBalance.slice(2,);
 
   let transactionData = 
