@@ -173,7 +173,7 @@ function populateActionOptions() {
   swapForm.innerHTML += activePool.getSelectTokenHTML(
     'Token for swap input:', 'swapTokenIndexIn');
   swapForm.innerHTML += activePool.getSelectTokenHTML(
-'Token for swap output:', 'swapTokenIndexOut');
+    'Token for swap output:', 'swapTokenIndexOut');
   
   const singleWithdrawalForm = document.getElementById('singleWithdrawalForm');
   singleWithdrawalForm.innerHTML = activePool.getSelectTokenHTML(
@@ -338,17 +338,16 @@ async function withdrawSingleToken(button) {
   const loggingKeyword = 'Single Token Withdrawal';
   statusElement = document.getElementById('singleWithdrawStatus');
   showAttempting(statusElement, loggingKeyword);
-  
+
   const singleTokenIndex = document.getElementById('singleTokenIndex');
   let tokenIndexIn = singleTokenIndex.value;
   let tokenIndexHex = tokenIndexIn.toString(16); 
 
   const singleTokenAmount = document.getElementById('singleTokenAmount');
   let tokenAmountIn = singleTokenAmount.value;
-  
-  // this is ALWAYS scaled by 1e18 because here, we are dealing with LP tokens specifically
-  amountInHex = (tokenAmountIn * 1e+18).toString(16);
 
+  // this is ALWAYS scaled by 1e18 because here, we are dealing with LP tokens specifically
+  const amountInHex = (tokenAmountIn * 1e+18).toString(16);
   const amountInPadded = amountInHex.padStart(64, '0');
   const indexInPadded = tokenIndexHex.padStart(64, '0');
 
@@ -356,7 +355,8 @@ async function withdrawSingleToken(button) {
     '0x3e3a1560'        // function signature
     + amountInPadded    // amount LP in
     + indexInPadded     // token index
-    + minAmountPadded;  // min out
+    + minAmountPadded   // min out
+    + deadline6ca33f73Padded;
   
   const transactionParams = activePool.getTransactionParams(transactionData);
 
