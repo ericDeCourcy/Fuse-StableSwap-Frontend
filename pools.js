@@ -80,9 +80,9 @@ class Pool {
 
 const fakePool = new Pool(
     // TODO eric verify this is the pool address. called 'fake swap address' in main.
-    '0xeADfEa5f18c1E1D5030dd352f293d78865a264a2', 
+    '0x3E192A2Eae22B3DB07a0039E10bCe29097E881B9', // swap pool address
     // TODO eric verify this is the rewards contract address.
-    '0x82cCDecF87141190F6A69321FB88F040aff83B08',
+    '0xFc99135BAEa5D21267b2c26E3d8518aaf07f2644', // rewards contact
     [tokens[0], tokens[1], tokens[2]],
     tokens[3]
 );
