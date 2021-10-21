@@ -1,5 +1,5 @@
 /* global tokens, fakePool */
-const activePool = fakePool;
+const activePool = usd1Pool;
 
 // accounts (for metamask)
 let accounts = [];
@@ -33,10 +33,12 @@ function selectSection(sectionNumber) {
     element.classList.remove('activeSection');
   })
   actionSectionTitles[sectionNumber].classList.add('activeSection');
-  
+
   if (sectionNumber === 2) { 
     getLPBalance();
+    getUserAllowance();
   }
+
 }
 
 const withdrawalSubsectionTitles = [
@@ -216,6 +218,8 @@ async function deposit(button) {
 
 
 async function getLPBalance() {
+    console.log("Getting LP Balance...");
+
     // construct tx params
     let funcSig = '0x70a08231';
 
@@ -233,6 +237,34 @@ async function getLPBalance() {
     
     document.getElementById('LPTokenBalance').innerHTML = 
       'Your LP Token balance: ' + (parseInt(LPBalance,16) / 1e+18);
+
+    console.log("LP Balance Gotten!");
+}
+
+// gets the current account's allowance of token, spendable by the swap contract
+// Approving something means increasing it's allowance
+// think of allowance as "approved amount"
+async function getUserAllowance() {
+  console.log("Getting allowance...");
+
+  let funcSig = '0xdd62ed3e';
+
+  let encodedAllowanceTx = funcSig 
+    + ''.padStart(24, '0')
+    + ethereum.selectedAddress.slice(2,)
+    + ''.padStart(24, '0')
+    + activePool.address.replace(/^0x/, '');
+
+  allowance = await ethereum.request({
+    method: 'eth_call',
+    params:   [{
+      to: tokens[0].address,      // TODO: functionalize this so that you can pass in each token. Here, any token address wil get the approved amount for that token
+      data: encodedAllowanceTx
+    }]
+  });
+
+  console.log("Encoded balance Tx is..." + encodedAllowanceTx);
+  console.log("Allowance for this is..." + allowance);
 }
 
 
