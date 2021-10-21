@@ -33,6 +33,10 @@ function selectSection(sectionNumber) {
     element.classList.remove('activeSection');
   })
   actionSectionTitles[sectionNumber].classList.add('activeSection');
+  
+  if (sectionNumber === 2) { 
+    getLPBalance();
+  }
 }
 
 const withdrawalSubsectionTitles = [
