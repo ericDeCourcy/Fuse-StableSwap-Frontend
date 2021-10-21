@@ -78,7 +78,7 @@ class Pool {
     }
 }
 
-const fakePool = new Pool(
+const usd1Pool = new Pool(
     // TODO eric verify this is the pool address. called 'fake swap address' in main.
     '0x3E192A2Eae22B3DB07a0039E10bCe29097E881B9', // swap pool address
     // TODO eric verify this is the rewards contract address.
