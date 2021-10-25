@@ -298,6 +298,50 @@ async function swap(button) {
 }
 
 
+async function calculateSwap(value) {
+  
+  const swapTokenIndexIn = document.getElementById('swapTokenIndexIn');
+  const swapTokenIndexOut = document.getElementById('swapTokenIndexOut');
+
+  let tokenIndexIn = swapTokenIndexIn.value;
+  let tokenIndexOut = swapTokenIndexOut.value;
+
+  let swapAmountScaled = value * activePool.poolTokens[tokenIndexIn].decimals;
+  
+  const transactionData = 
+    '0xa95b089f'    // calculate swap sighash
+    + getPaddedHex(tokenIndexIn) 
+    + getPaddedHex(tokenIndexOut) 
+    + getPaddedHex(swapAmountScaled);
+
+  console.log("got to before the try in calc swap");
+  console.log("transactionData = " + transactionData);
+
+
+  try {
+    let swapEstimateOutput = await ethereum.request({
+      method: 'eth_call',
+      params:  [{
+        to: activePool.address,
+        data: transactionData  
+      }]
+    }); 
+    console.log(`Swap estimate = ${swapEstimateOutput}.`);  // TODO: add to debug toggle
+    console.log("activePool address = " + activePool.address);
+
+    let swapEstimateElement = document.getElementById('swapEstimate');
+    
+    swapEstimateOutputDescaled = parseInt(swapEstimateOutput) / activePool.poolTokens[tokenIndexOut].decimals;  // TODO: will this impart inaccuracies?
+
+    swapEstimateElement.innerHTML = `Estimated swap outcome: ${swapEstimateOutputDescaled} ${activePool.poolTokens[tokenIndexOut].name}`;
+
+  } catch (error) {
+    console.log('error retreiving swap estimate: ' + error);   
+  }
+
+  
+}
+
 async function withdrawBalanced(button) {
   button.disabled = true;
   const loggingKeyword = 'Balanced Withdrawal';
