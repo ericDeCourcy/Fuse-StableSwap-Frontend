@@ -1,4 +1,4 @@
-/* global tokens, fakePool */
+/* global tokens, fakePool, usd1Pool */
 const activePool = usd1Pool;
 
 // accounts (for metamask)
@@ -36,7 +36,7 @@ function selectSection(sectionNumber) {
 
   if (sectionNumber === 2) { 
     getLPBalance();
-    getUserAllowance();
+    isTokenAllowed();
   }
 
 }
@@ -122,7 +122,7 @@ async function connectToMetamask(button) {
     }
     accounts = await ethereum.request({ method: 'eth_requestAccounts' });
     showSuccess(statusElement, loggingKeyword);
-    continueToApprovalTab();
+    await continueToApprovalTab();
   } catch (error) {
     showError(statusElement, loggingKeyword, error);
   } finally {
@@ -130,12 +130,18 @@ async function connectToMetamask(button) {
   }
 }
 
-function continueToApprovalTab() {
+async function continueToApprovalTab() {
   tabs.connection.hidden = true;
   tabs.approval.hidden = false;
   tabs.actions.hidden = true;
   const tokenApprovalButtons = document.getElementById('tokenApprovalButtons');
-  tokenApprovalButtons.innerHTML = activePool.getTokenApprovalHTML();
+  tokenApprovalButtons.innerHTML = 'Loading token approval data...';
+  const tokenApprovalHTML = await activePool.getTokenApprovalHTML();
+  if (tokenApprovalHTML == null) {
+    continueToActionsTab();
+  } else {
+    tokenApprovalButtons.innerHTML = tokenApprovalHTML;
+  }
 }
 
 //TODO alanna simplify this function
@@ -235,36 +241,9 @@ async function getLPBalance() {
       }]
     }); 
     
-    document.getElementById('LPTokenBalance').innerHTML = 
-      'Your LP Token balance: ' + (parseInt(LPBalance,16) / 1e+18);
-
-    console.log("LP Balance Gotten!");
-}
-
-// gets the current account's allowance of token, spendable by the swap contract
-// Approving something means increasing it's allowance
-// think of allowance as "approved amount"
-async function getUserAllowance() {
-  console.log("Getting allowance...");
-
-  let funcSig = '0xdd62ed3e';
-
-  let encodedAllowanceTx = funcSig 
-    + ''.padStart(24, '0')
-    + ethereum.selectedAddress.slice(2,)
-    + ''.padStart(24, '0')
-    + activePool.address.replace(/^0x/, '');
-
-  allowance = await ethereum.request({
-    method: 'eth_call',
-    params:   [{
-      to: tokens[0].address,      // TODO: functionalize this so that you can pass in each token. Here, any token address wil get the approved amount for that token
-      data: encodedAllowanceTx
-    }]
-  });
-
-  console.log("Encoded balance Tx is..." + encodedAllowanceTx);
-  console.log("Allowance for this is..." + allowance);
+    const tokenBalanceString = `Your LP Token balance: ${parseInt(LPBalance, 16) / 1e+18}`;
+    document.getElementById('LPTokenBalance').innerHTML = tokenBalanceString;
+    console.log(tokenBalanceString);
 }
 
 
@@ -299,9 +278,10 @@ async function swap(button) {
 
 
 async function calculateSwap(value) {
-  
   const swapTokenIndexIn = document.getElementById('swapTokenIndexIn');
   const swapTokenIndexOut = document.getElementById('swapTokenIndexOut');
+  const swapEstimateElement = document.getElementById('swapEstimate');
+  swapEstimateElement.innerHTML = `Estimating swap outcome...`;
 
   let tokenIndexIn = swapTokenIndexIn.value;
   let tokenIndexOut = swapTokenIndexOut.value;
@@ -317,7 +297,6 @@ async function calculateSwap(value) {
   console.log("got to before the try in calc swap");
   console.log("transactionData = " + transactionData);
 
-
   try {
     let swapEstimateOutput = await ethereum.request({
       method: 'eth_call',
@@ -326,17 +305,15 @@ async function calculateSwap(value) {
         data: transactionData  
       }]
     }); 
-    console.log(`Swap estimate = ${swapEstimateOutput}.`);  // TODO: add to debug toggle
-    console.log("activePool address = " + activePool.address);
-
-    let swapEstimateElement = document.getElementById('swapEstimate');
+    console.log(`Raw swap estimate: ${swapEstimateOutput}.`);  // TODO: add to debug toggle
     
-    swapEstimateOutputDescaled = parseInt(swapEstimateOutput) / activePool.poolTokens[tokenIndexOut].decimals;  // TODO: will this impart inaccuracies?
+    const swapEstimateOutputDescaled = parseInt(swapEstimateOutput) / activePool.poolTokens[tokenIndexOut].decimals;  // TODO: will this impart inaccuracies?
+    const roundedSwapEstimate = Math.round(swapEstimateOutputDescaled * 100) / 100;
 
-    swapEstimateElement.innerHTML = `Estimated swap outcome: ${swapEstimateOutputDescaled} ${activePool.poolTokens[tokenIndexOut].name}`;
+    swapEstimateElement.innerHTML = `Estimated swap outcome: ${roundedSwapEstimate} ${activePool.poolTokens[tokenIndexOut].name}`;
 
   } catch (error) {
-    console.log('error retreiving swap estimate: ' + error);   
+    console.log(`Error retreiving swap estimate: ${error.code} ${error.message}`);
   }
 
   
