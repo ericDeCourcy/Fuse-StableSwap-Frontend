@@ -36,7 +36,6 @@ function selectSection(sectionNumber) {
 
   if (sectionNumber === 2) { 
     getLPBalance();
-    isTokenAllowed();
   }
 
 }
@@ -190,14 +189,14 @@ function showActionsTab() {
 function populateActionOptions() {
   document.getElementById('swapForm').innerHTML =
     `<label for="swapAmountIn">Tokens in for swap:</label>`
-    + `<input type="number" id="swapAmountIn" name="swapAmountIn" min="0" value="0">`
+    + `<input type="number" id="swapAmountIn" name="swapAmountIn" oninput="calculateSwap(value)" min="0" value="0"/>`
     + activePool.getSelectTokenHTML('Token for swap input:', 'swapTokenIndexIn')
     + activePool.getSelectTokenHTML('Token for swap output:', 'swapTokenIndexOut');
 
   document.getElementById('singleWithdrawalForm').innerHTML =
     activePool.getSelectTokenHTML('Withdrawal Token:', 'singleTokenIndex')
     + `<label for="singleTokenAmount">Amount Of LP Token To Withdraw:</label>`
-    + `<input type="number" id="singleTokenAmount" name="singleTokenAmount" min="0" value="0">`;
+    + `<input type="number" id="singleTokenAmount" name="singleTokenAmount" min="0" value="0"/>`;
   
   document.getElementById('depositForm').innerHTML =
     activePool.getInputTokenAmountHTML('to deposit:', 'ToDeposit');
