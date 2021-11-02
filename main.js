@@ -193,7 +193,9 @@ function populateActionOptions() {
     + activePool.getSelectTokenHTML('Token for swap input:', 'swapTokenIndexIn')
     + activePool.getSelectTokenHTML('Token for swap output:', 'swapTokenIndexOut');
     const indexInElement = document.getElementById('swapTokenIndexIn');
-    indexInElement.addEventListener("onchange", displayUserBalance());
+    indexInElement.addEventListener("change", displayUserBalance);
+    const indexOutElement = document.getElementById('swapTokenIndexOut');
+    indexOutElement.addEventListener("change", displayUserBalance);
 
   document.getElementById('singleWithdrawalForm').innerHTML =
     activePool.getSelectTokenHTML('Withdrawal Token:', 'singleTokenIndex')
