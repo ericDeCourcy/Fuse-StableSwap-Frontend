@@ -1,4 +1,4 @@
-/* global tokens, fakePool, usd1Pool */
+/* global fakePool, usd1Pool */
 const activePool = usd1Pool;
 
 // accounts (for metamask)
@@ -150,9 +150,9 @@ async function showApprovalTab() {
 }
 
 //TODO alanna simplify this function
-async function approveToken(button, tokenId) {
+async function approveToken(button, tokenIndex) {
   button.disabled = true;
-  const token = tokens[tokenId];
+  const token = activePool.poolTokens.filter((token) => token.index === tokenIndex)[0];
   const loggingKeyword = token.name + ' approval';
   const statusElement = document.getElementById(`approve${token.name}Status`);
   showAttempting(statusElement, loggingKeyword);
