@@ -206,7 +206,7 @@ function changeActivePool(value) {
   activePool = pools[value];
   displayLPBalance();
   displayUserBalance();
-  populateActionOptions();
+  showApprovalTab();
 }
 
 function populateActionOptions() {
