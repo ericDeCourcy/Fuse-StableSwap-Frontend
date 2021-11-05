@@ -144,3 +144,7 @@ const usd1Pool = new Pool(
     new Token(3, 'USD1-LP', '0x61374FE435360A4a39b31045D1B71A9351f64B31', 1e+18)
 );
 
+const pools = {
+    Fake: fakePool,
+    USD1: usd1Pool
+};
