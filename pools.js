@@ -4,6 +4,8 @@ class Pool {
         this.rewardsContractAddress = rewardsContractAddress;
         this.poolTokens = poolTokens;
         this.LPToken = LPToken;
+        this.allTokens = JSON.parse(JSON.stringify(this.poolTokens));
+        this.allTokens.push(this.LPToken);
     }
 
     async getTokenApprovalHTML() {
@@ -17,9 +19,7 @@ class Pool {
             + ''.padStart(24, '0')
             + activePool.address.replace(/^0x/, '');
 
-        const allTokens = JSON.parse(JSON.stringify(this.poolTokens));
-        allTokens.push(this.LPToken);
-        for (const token of allTokens) {
+        for (const token of this.allTokens) {
             let disabled = '';
             let status = '';
             try {
@@ -152,7 +152,7 @@ const usd2Pool = new Pool(
         new Token(1, 'fUSD', '0x249BE57637D8B013Ad64785404b24aeBaE9B098B', 1e+18),
         new Token(2, 'USDT', '0xFaDbBF8Ce7D5b7041bE672561bbA99f79c532e10', 1e+6)
     ],
-    new Token(3, 'USD2-LP', '0x73e9A44Ab8c0e79c219864F06869C9668de4a1EA', 1e+18)
+    new Token(3, 'USD2-LP', '0x6A5Ea3652b88a9d066094216ACa18aC58eA216f5', 1e+18)
 );
 
 const pools = {
