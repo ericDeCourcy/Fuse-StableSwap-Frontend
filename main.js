@@ -169,7 +169,7 @@ async function showApprovalTab() {
 //TODO alanna simplify this function
 async function approveToken(button, tokenIndex) {
   button.disabled = true;
-  const token = activePool.poolTokens.filter((token) => token.index === tokenIndex)[0];
+  const token = activePool.allTokens.filter((token) => token.index === tokenIndex)[0];
   const loggingKeyword = token.name + ' approval';
   const statusElement = document.getElementById(`approve${token.name}Status`);
   showAttempting(statusElement, loggingKeyword);
