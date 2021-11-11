@@ -86,7 +86,7 @@ function getPaddedHex(input) {
 }
 
 function getTokenArrayLengthPadded() {
-  return activePool.poolTokens.length;
+  return getPaddedHex(activePool.poolTokens.length);
 }
 
 const minAmountPadded = getPaddedHex('1');

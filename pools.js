@@ -123,8 +123,8 @@ class Token {
 
 
 const fakePool = new Pool(
-    '0xeADfEa5f18c1E1D5030dd352f293d78865a264a2',
-    '0x82cCDecF87141190F6A69321FB88F040aff83B08',
+    '0xeADfEa5f18c1E1D5030dd352f293d78865a264a2', //swap
+    '0x82cCDecF87141190F6A69321FB88F040aff83B08', //rewards
     [
         new Token(0, 'Fake-DAI', '0xa277bc1c1612Bb327D79746475aF29F7a93e8E64', 1e+18),
         new Token(1, 'Fake-USDC', '0x88c784FACBE88A20601A32Bd98d9Da8d59d08F92', 1e+6),
@@ -144,7 +144,19 @@ const usd1Pool = new Pool(
     new Token(3, 'USD1-LP', '0x61374FE435360A4a39b31045D1B71A9351f64B31', 1e+18)
 );
 
+const usd2Pool = new Pool(
+    '0xECf95fFBa3e1Eb5f673606bC944fD093BB5D8EeD', //swap
+    '0x9df200F086222084D86e252691d06C71480e440D', //rewards
+    [
+        new Token(0, 'DAI', '0x94Ba7A27c7A95863d1bdC7645AC2951E0cca06bA', 1e+18),
+        new Token(1, 'fUSD', '0x249BE57637D8B013Ad64785404b24aeBaE9B098B', 1e+18),
+        new Token(2, 'USDT', '0xFaDbBF8Ce7D5b7041bE672561bbA99f79c532e10', 1e+6)
+    ],
+    new Token(3, 'USD2-LP', '0x73e9A44Ab8c0e79c219864F06869C9668de4a1EA', 1e+18)
+);
+
 const pools = {
     Fake: fakePool,
-    USD1: usd1Pool
+    USD1: usd1Pool,
+    USD2: usd2Pool
 };
