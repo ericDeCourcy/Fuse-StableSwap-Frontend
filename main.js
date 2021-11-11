@@ -102,6 +102,12 @@ function showAttempting(statusElement, loggingKeyword) {
   statusElement.innerHTML = message;
 }
 
+function showSubmitted(statusElement, loggingKeyword) {
+  const message = `${loggingKeyword} submitted...`;
+  console.log(message);
+  statusElement.innerHTML = message;
+}
+
 function showSuccess(statusElement, loggingKeyword) {
   const message = `${loggingKeyword} successful!`;
   console.log(message);
@@ -120,15 +126,53 @@ function showConnectionTab() {
 }
 
 
+async function pollForStatus(txHash) {
+  const waitTime = 1000;
+  let totalTimeWaited = 0;
+
+  while (totalTimeWaited < 15000) {
+      try {
+          let txInfo = await ethereum.request({
+              method: 'eth_getTransactionReceipt',
+              params: [txHash]
+          });
+          if (txInfo == null) {
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+              totalTimeWaited += waitTime;
+          } else {
+              if (txInfo.status === '0x1') {
+                  return true;
+              } else if (txInfo.status === '0x0') {
+                  return false;
+              } else {
+                  console.warn(`Unexpected transaction status ${txInfo.status}.`);
+                  return false;
+              }
+          }
+      } catch (e) {
+          console.error(`pollForStatus('${txHash}') failed: ${e.code}: ${e.message}`);
+          return false;
+      }
+  }
+}
+
 async function ethRequest(params, statusElement, loggingKeyword) {
   try {
-    await ethereum.request({
+    const txHash = await ethereum.request({
       method: 'eth_sendTransaction',
       params: [params],
     });
-    showSuccess(statusElement, loggingKeyword);
+    showSubmitted(statusElement, loggingKeyword);
+    const success = await pollForStatus(txHash);
+    if (success) {
+      showSuccess(statusElement, loggingKeyword);
+      return true;
+    } else {
+      throw new Error('Transaction reverted or blockchain polling timed out.');
+    }
   } catch (error) {
     showError(statusElement, loggingKeyword, error);
+    return false;
   }
 }
 
@@ -182,14 +226,8 @@ async function approveToken(button, tokenIndex) {
   transactionParams['to'] = token.address;
   transactionParams['gas'] = '0x0186A0';
   
-  try {
-    await ethereum.request({
-      method: 'eth_sendTransaction',
-      params: [transactionParams],
-    });
-    showSuccess(statusElement, loggingKeyword)
-  } catch(error) {
-    showError(statusElement, loggingKeyword, error);
+  const success = await ethRequest(transactionParams, statusElement, loggingKeyword);
+  if (!success) {
     button.disabled = false;
   }
 }
