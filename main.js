@@ -130,7 +130,7 @@ async function pollForStatus(txHash) {
   const waitTime = 1000;
   let totalTimeWaited = 0;
 
-  while (totalTimeWaited < 15000) {
+  while (totalTimeWaited < 30000) {
       try {
           let txInfo = await ethereum.request({
               method: 'eth_getTransactionReceipt',
