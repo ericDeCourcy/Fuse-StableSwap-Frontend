@@ -8,6 +8,10 @@ class Pool {
         this.allTokens.push(this.LPToken);
     }
 
+    getTokenByIndex(index) {
+        return this.allTokens.filter((token) => Number(token.index) === Number(index))[0];
+    }
+
     async getTokenApprovalHTML() {
         let buttonsHTML = '';
         let allTokensAreApproved = true;
@@ -114,6 +118,7 @@ class Token {
         this.name = name;
         this.address = address;
         this.decimals = decimals;
+        this.approved = false;
     }
 
     scaleAndPad(value) {

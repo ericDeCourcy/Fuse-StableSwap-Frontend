@@ -51,7 +51,6 @@ function selectSection(sectionNumber) {
   if (sectionNumber === 2) { 
     displayLPBalance();
   }
-
 }
 
 const withdrawalSubsectionTitles = [
@@ -119,12 +118,12 @@ function showError(statusElement, loggingKeyword, error) {
   statusElement.innerHTML = `${loggingKeyword} failed. See console log for details.`;
 }
 
+
 function showConnectionTab() {
   tabs.connection.hidden = false;
   tabs.approval.hidden = true;
   tabs.actions.hidden = true;
 }
-
 
 async function pollForStatus(txHash) {
   const waitTime = 1000;
@@ -155,6 +154,7 @@ async function pollForStatus(txHash) {
       }
   }
 }
+
 
 async function ethRequest(params, statusElement, loggingKeyword) {
   try {
@@ -213,16 +213,16 @@ async function showApprovalTab() {
 //TODO alanna simplify this function
 async function approveToken(button, tokenIndex) {
   button.disabled = true;
-  const token = activePool.allTokens.filter((token) => token.index === tokenIndex)[0];
+  const token = activePool.getTokenByIndex(tokenIndex);
   const loggingKeyword = token.name + ' approval';
-  const statusElement = document.getElementById(`approve${token.name}Status`);
-  showAttempting(statusElement, loggingKeyword);
+  // const statusElement = document.getElementById(`approve${token.name}Status`);
+  // showAttempting(statusElement, loggingKeyword);
   
-  transactionData = 
+  const transactionData = 
     '0x095ea7b3'                                                    // function signature
     + activePool.address.replace(/^0x/, '').padStart(64, '0')       // fake swap address
     + ''.padStart(64, 'f');                                         // max amount
-  transactionParams = activePool.getTransactionParams(transactionData);
+  const transactionParams = activePool.getTransactionParams(transactionData);
   transactionParams['to'] = token.address;
   transactionParams['gas'] = '0x0186A0';
   
@@ -230,6 +230,7 @@ async function approveToken(button, tokenIndex) {
   if (!success) {
     button.disabled = false;
   }
+  // TODO - can't just call the updat button at the end because we'll get stuck in a loop
 }
 
 
@@ -240,12 +241,60 @@ function showActionsTab() {
   populateActionOptions();
 }
 
-function changeActivePool(value) {
+
+async function checkAllTokensForApproval() {
+  for (const token of activePool.poolTokens) {
+    await setIsTokenApproved(token);
+  }
+  await setIsTokenApproved(activePool.LPToken);
+  // console.log(activePool.poolTokens);
+  // console.log(activePool.LPToken);
+}
+
+async function setIsTokenApproved(token) {
+  const tokenAllowanceTransactionData =
+    '0xdd62ed3e'
+    + ''.padStart(24, '0')
+    + ethereum.selectedAddress.slice(2,)
+    + ''.padStart(24, '0')
+    + activePool.address.replace(/^0x/, '');
+  const allowance = await ethereum.request({
+    method: 'eth_call',
+    params: [{
+        to: token.address,
+        data: tokenAllowanceTransactionData
+    }]
+  });
+  // console.log('setting token approval info: ');
+  // console.log(token);
+  // console.log(allowance);
+  token.approved = (allowance != 0) ? true : false;
+  console.log(`setting token approval info: ${token.name}: ${token.approved}`);
+}
+
+function showLoadingStyle() {
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  loadingOverlay.hidden = false;
+  document.body.style.cursor = 'wait';
+}
+
+function hideLoadingStyle() {
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  loadingOverlay.hidden = true;
+  document.body.style.cursor = 'default';
+}
+
+async function changeActivePool(value) {
+  showLoadingStyle();
   activePool = pools[value];
+  await checkAllTokensForApproval();
+  hideLoadingStyle();
   displayLPBalance();
   displayUserBalance();
-  showApprovalTab();
+  populateActionOptions();
+  loadingOverlay.hidden = true;
 }
+
 
 function populateActionOptions() {
   document.getElementById('poolOptions').innerHTML = getPoolOptionsHTML();
@@ -257,6 +306,7 @@ function populateActionOptions() {
     + activePool.getSelectTokenHTML('Token for swap output:', 'swapTokenIndexOut');
     const indexInElement = document.getElementById('swapTokenIndexIn');
     indexInElement.addEventListener("change", displayUserBalance);
+    //indexInElement.addEventListener("change", updateSwapButton);
     const indexOutElement = document.getElementById('swapTokenIndexOut');
     indexOutElement.addEventListener("change", displayUserBalance);
 
@@ -301,10 +351,8 @@ async function displayLPBalance() {
     LPTokenBalanceElement.innerHTML = loadingString;
     console.log(loadingString);
 
-    // construct tx params
-    let funcSig = '0x70a08231';
-
-    let encodedBalanceTx = funcSig 
+    const encodedBalanceTx =
+      '0x70a08231'
       + ''.padStart(24, '0') 
       + ethereum.selectedAddress.slice(2,);
 
@@ -321,6 +369,26 @@ async function displayLPBalance() {
     console.log(tokenBalanceString);
 }
 
+
+function updateSwapButton() {
+  const buttonElement = document.getElementById('swapButton');
+  buttonElement.disabled = true;
+  const tokenInIndex = document.getElementById('swapTokenIndexIn').value;
+  const tokenIn = activePool.getTokenByIndex(tokenInIndex);
+  console.log(activePool.getTokenByIndex(tokenInIndex));
+  console.log(tokenIn);
+  buttonElement.onclick = null;
+  console.log(buttonElement);
+  if (tokenIn.approved) {
+    buttonElement.innerText = 'Swap';
+    buttonElement.addEventListener('click', function(){swap(buttonElement);});
+  } else {
+    buttonElement.innerText = `Approve ${tokenIn.name}`;
+    buttonElement.addEventListener('click', function(){approveToken(buttonElement, tokenIn.index);});
+    // buttonElement.onclick = approveToken(buttonElement, tokenIn.index);
+  }
+  buttonElement.disabled = false;
+}
 
 async function swap(button) {
   button.disabled = true;
@@ -398,9 +466,8 @@ async function displayUserBalance() {
 
   let tokenIndexIn = swapTokenIndexIn.value;
 
-  let funcSig = '0x70a08231';
-
-  let balanceQueryTxData = funcSig 
+  const balanceQueryTxData =
+    '0x70a08231'
     + ''.padStart(24, '0') 
     + ethereum.selectedAddress.slice(2,);
 

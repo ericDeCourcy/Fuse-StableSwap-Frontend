@@ -5,6 +5,16 @@ html, body {
     background-color: #052235;
 }
 
+#loadingOverlay {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    height: 100%;
+    width: 100%;
+    background: rgba(21, 61, 111, .50);
+    z-index: 100;
+}
+
 div.tab {
     margin-left: 20%;
     margin-top: 100px;
