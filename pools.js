@@ -4,58 +4,12 @@ class Pool {
         this.rewardsContractAddress = rewardsContractAddress;
         this.poolTokens = poolTokens;
         this.LPToken = LPToken;
-        this.allTokens = JSON.parse(JSON.stringify(this.poolTokens));
-        this.allTokens.push(this.LPToken);
+        // this list refers to the same underlying token objects but includes the rewards token
+        this.allTokens = this.poolTokens.concat(this.LPToken);
     }
 
     getTokenByIndex(index) {
         return this.allTokens.filter((token) => Number(token.index) === Number(index))[0];
-    }
-
-    async getTokenApprovalHTML() {
-        let buttonsHTML = '';
-        let allTokensAreApproved = true;
-
-        const tokenAllowanceTransactionData =
-            '0xdd62ed3e'
-            + ''.padStart(24, '0')
-            + ethereum.selectedAddress.slice(2,)
-            + ''.padStart(24, '0')
-            + activePool.address.replace(/^0x/, '');
-
-        for (const token of this.allTokens) {
-            let disabled = '';
-            let status = '';
-            try {
-                const allowance = await ethereum.request({
-                    method: 'eth_call',
-                    params: [{
-                        to: token.address,
-                        data: tokenAllowanceTransactionData
-                    }]
-                });
-                if (allowance != 0) {
-                    disabled = 'disabled';
-                    status = 'Token already approved.';
-                } else {
-                    allTokensAreApproved = false;
-                }
-            } catch(error) {
-                console.log(error);
-                allTokensAreApproved = false;
-            }
-            buttonsHTML += `<button id="approve${token.name}Button" 
-                onclick="approveToken(this, ${token.index})" ${disabled}>
-                    Approve ${token.name}
-                </button>
-                <span id="approve${token.name}Status" class="status">${status}</span>
-                <br/>`;
-        }
-        if (allTokensAreApproved) {
-            return null;
-        } else {
-            return buttonsHTML;
-        }
     }
 
     getSelectTokenHTML(labelText, elementName) {

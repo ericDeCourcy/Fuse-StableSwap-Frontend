@@ -20,7 +20,6 @@ let accounts = [];
 
 const tabs = {
   connection: document.getElementById('metamaskConnection'),
-  approval: document.getElementById('tokenApproval'),
   actions: document.getElementById('actions')
 };
 
@@ -121,7 +120,6 @@ function showError(statusElement, loggingKeyword, error) {
 
 function showConnectionTab() {
   tabs.connection.hidden = false;
-  tabs.approval.hidden = true;
   tabs.actions.hidden = true;
 }
 
@@ -188,7 +186,7 @@ async function connectToMetamask(button) {
     }
     accounts = await ethereum.request({ method: 'eth_requestAccounts' });
     showSuccess(statusElement, loggingKeyword);
-    await showApprovalTab();
+    await showActionsTab();
   } catch (error) {
     showError(statusElement, loggingKeyword, error);
   } finally {
@@ -196,27 +194,25 @@ async function connectToMetamask(button) {
   }
 }
 
-async function showApprovalTab() {
-  tabs.connection.hidden = true;
-  tabs.approval.hidden = false;
-  tabs.actions.hidden = true;
-  const tokenApprovalButtons = document.getElementById('tokenApprovalButtons');
-  tokenApprovalButtons.innerHTML = 'Loading token approval data...';
-  const tokenApprovalHTML = await activePool.getTokenApprovalHTML();
-  if (tokenApprovalHTML == null) {
-    showActionsTab();
-  } else {
-    tokenApprovalButtons.innerHTML = tokenApprovalHTML;
-  }
+async function rejectToken(tokenIndex) {
+  const token = activePool.getTokenByIndex(tokenIndex);
+  const transactionData =
+    '0x095ea7b3'                                                    // function signature
+    + activePool.address.replace(/^0x/, '').padStart(64, '0')       // fake swap address
+    + ''.padStart(64, '0');                                         // max amount
+  const transactionParams = activePool.getTransactionParams(transactionData);
+  transactionParams['to'] = token.address;
+  transactionParams['gas'] = '0x0186A0';
+
+  await ethRequest(transactionParams, document.createElement('div'), 'Token rejection');
+  await checkAllTokensForApproval();
 }
 
-//TODO alanna simplify this function
-async function approveToken(button, tokenIndex) {
+async function approveToken(button, tokenIndex, statusElement) {
   button.disabled = true;
   const token = activePool.getTokenByIndex(tokenIndex);
   const loggingKeyword = token.name + ' approval';
-  // const statusElement = document.getElementById(`approve${token.name}Status`);
-  // showAttempting(statusElement, loggingKeyword);
+  showAttempting(statusElement, loggingKeyword);
   
   const transactionData = 
     '0x095ea7b3'                                                    // function signature
@@ -227,31 +223,33 @@ async function approveToken(button, tokenIndex) {
   transactionParams['gas'] = '0x0186A0';
   
   const success = await ethRequest(transactionParams, statusElement, loggingKeyword);
-  if (!success) {
+  if (success) {
+    await checkTokenApproval(token);
+    updateSwapButton();
+  } else {
     button.disabled = false;
   }
-  // TODO - can't just call the updat button at the end because we'll get stuck in a loop
 }
 
 
-function showActionsTab() {
+async function showActionsTab() {
+  showLoadingStyle();
   tabs.connection.hidden = true;
-  tabs.approval.hidden = true;
   tabs.actions.hidden = false;
+  await checkAllTokensForApproval();
   populateActionOptions();
+  updateSwapButton();
+  hideLoadingStyle();
 }
 
 
 async function checkAllTokensForApproval() {
-  for (const token of activePool.poolTokens) {
-    await setIsTokenApproved(token);
+  for (const token of activePool.allTokens) {
+    await checkTokenApproval(token);
   }
-  await setIsTokenApproved(activePool.LPToken);
-  // console.log(activePool.poolTokens);
-  // console.log(activePool.LPToken);
 }
 
-async function setIsTokenApproved(token) {
+async function checkTokenApproval(token) {
   const tokenAllowanceTransactionData =
     '0xdd62ed3e'
     + ''.padStart(24, '0')
@@ -265,11 +263,8 @@ async function setIsTokenApproved(token) {
         data: tokenAllowanceTransactionData
     }]
   });
-  // console.log('setting token approval info: ');
-  // console.log(token);
-  // console.log(allowance);
   token.approved = (allowance != 0) ? true : false;
-  console.log(`setting token approval info: ${token.name}: ${token.approved}`);
+  console.log(`Setting token approval info: ${token.name}: ${token.approved}`);
 }
 
 function showLoadingStyle() {
@@ -288,11 +283,12 @@ async function changeActivePool(value) {
   showLoadingStyle();
   activePool = pools[value];
   await checkAllTokensForApproval();
+  updateSwapButton();
   hideLoadingStyle();
   displayLPBalance();
   displayUserBalance();
   populateActionOptions();
-  loadingOverlay.hidden = true;
+  hideLoadingStyle();
 }
 
 
@@ -304,11 +300,13 @@ function populateActionOptions() {
     + `<input type="number" id="swapAmountIn" name="swapAmountIn" oninput="calculateSwap(value)" min="0" value="0"/>`
     + activePool.getSelectTokenHTML('Token for swap input:', 'swapTokenIndexIn')
     + activePool.getSelectTokenHTML('Token for swap output:', 'swapTokenIndexOut');
+
     const indexInElement = document.getElementById('swapTokenIndexIn');
-    indexInElement.addEventListener("change", displayUserBalance);
-    //indexInElement.addEventListener("change", updateSwapButton);
+    indexInElement.addEventListener('change', displayUserBalance);
+    indexInElement.addEventListener('change', updateSwapButton);
+
     const indexOutElement = document.getElementById('swapTokenIndexOut');
-    indexOutElement.addEventListener("change", displayUserBalance);
+    indexOutElement.addEventListener('change', displayUserBalance);
 
   document.getElementById('singleWithdrawalForm').innerHTML =
     activePool.getSelectTokenHTML('Withdrawal Token:', 'singleTokenIndex')
@@ -369,25 +367,32 @@ async function displayLPBalance() {
     console.log(tokenBalanceString);
 }
 
+function getNewMajorButton(id, text, onclick) {
+  const buttonElement = document.createElement('button');
+  buttonElement.id = id;
+  buttonElement.classList.add('majorButton');
+  buttonElement.innerHTML = text;
+  buttonElement.addEventListener('click', onclick);
+  return buttonElement;
+}
 
 function updateSwapButton() {
+  const wrapper = document.getElementById('swapButtonWrapper');
   const buttonElement = document.getElementById('swapButton');
   buttonElement.disabled = true;
+
   const tokenInIndex = document.getElementById('swapTokenIndexIn').value;
   const tokenIn = activePool.getTokenByIndex(tokenInIndex);
-  console.log(activePool.getTokenByIndex(tokenInIndex));
-  console.log(tokenIn);
-  buttonElement.onclick = null;
-  console.log(buttonElement);
+
+  let newButtonElement;
   if (tokenIn.approved) {
-    buttonElement.innerText = 'Swap';
-    buttonElement.addEventListener('click', function(){swap(buttonElement);});
+    newButtonElement = getNewMajorButton('swapButton', 'Swap', (() => swap(newButtonElement)));
   } else {
-    buttonElement.innerText = `Approve ${tokenIn.name}`;
-    buttonElement.addEventListener('click', function(){approveToken(buttonElement, tokenIn.index);});
-    // buttonElement.onclick = approveToken(buttonElement, tokenIn.index);
+    newButtonElement = getNewMajorButton('swapButton', `Approve ${tokenIn.name}`,
+      (() => approveToken(newButtonElement, tokenIn.index, document.getElementById('swapStatus')))
+    );
   }
-  buttonElement.disabled = false;
+  wrapper.replaceChild(newButtonElement, buttonElement);
 }
 
 async function swap(button) {
