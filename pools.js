@@ -25,18 +25,19 @@ class Pool {
             </select>`;
     }
 
-    getInputTokenAmountHTML(labelText, partialElementName) {
+    getInputTokenAmountHTML(labelText, partialElementName, oninput=null) {
         let inputHTML = '';
         this.poolTokens.forEach((token) => {
             const elementName = token.name + partialElementName;
             inputHTML += `<label for="${elementName}">${token.name} ${labelText}</label>
-                <input id="${elementName}" name="${elementName}" type="number" min="0" value="0" />`;
+                <input id="${elementName}" name="${elementName}" 
+                class="${partialElementName}" type="number" min="0" value="0" oninput="${oninput}"/>`;
         });
         return inputHTML;
     }
 
     getTokenValuesFromElements(partialElementName) {
-        // TODO alanna - l2code
+        // TODO alanna - refactor
         let tokenValues = '';
         activePool.poolTokens.forEach((token) => {
             const elementName = token.name + partialElementName;

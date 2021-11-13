@@ -47,7 +47,11 @@ function selectSection(sectionNumber) {
   })
   actionSectionTitles[sectionNumber].classList.add('activeSection');
 
-  if (sectionNumber === 2) { 
+  if (sectionNumber === 0) {
+    updateDepositButton();
+  } else if (sectionNumber === 1) {
+    updateSwapButton();
+  } else if (sectionNumber === 2) {
     displayLPBalance();
   }
 }
@@ -225,6 +229,7 @@ async function approveToken(button, tokenIndex, statusElement) {
   const success = await ethRequest(transactionParams, statusElement, loggingKeyword);
   if (success) {
     await checkTokenApproval(token);
+    updateDepositButton();
     updateSwapButton();
   } else {
     button.disabled = false;
@@ -314,12 +319,51 @@ function populateActionOptions() {
     + `<input type="number" id="singleTokenAmount" name="singleTokenAmount" min="0" value="0"/>`;
   
   document.getElementById('depositForm').innerHTML =
-    activePool.getInputTokenAmountHTML('to deposit:', 'ToDeposit');
+    activePool.getInputTokenAmountHTML('to deposit:', 'ToDeposit', 'updateDepositButton()');
 
   document.getElementById('imbalancedWithdrawalForm').innerHTML =
     activePool.getInputTokenAmountHTML('desired:', 'ImbalancedOut');
 }
 
+
+function getNewMajorButton(id, text, onclick) {
+  const buttonElement = document.createElement('button');
+  buttonElement.id = id;
+  buttonElement.classList.add('majorButton');
+  buttonElement.innerHTML = text;
+  buttonElement.addEventListener('click', onclick);
+  return buttonElement;
+}
+
+
+function updateDepositButton() {
+  console.log('triggered');
+  const wrapper = document.getElementById('depositButtonWrapper');
+  const buttonElement = document.getElementById('depositButton');
+  buttonElement.disabled = true;
+
+  let newButtonElement;
+  let approvalNeeded = false;
+  for(const token of activePool.poolTokens) {
+    const elementName = `${token.name}ToDeposit`;
+    const elementValue = Number(document.getElementById(elementName).value);
+
+    if (elementValue > 0 && token.approved === false) {
+
+      console.log(token);
+      console.log(elementValue);
+      newButtonElement = getNewMajorButton('depositButton', `Approve ${token.name}`,
+        (() => approveToken(newButtonElement, token.index, document.getElementById('depositStatus')))
+      );
+      approvalNeeded = true;
+      break;
+    }
+  }
+  if (!approvalNeeded) {
+    newButtonElement = getNewMajorButton('depositButton', 'Deposit', (() => deposit(newButtonElement)));
+  }
+  wrapper.replaceChild(newButtonElement, buttonElement);
+}
 
 async function deposit(button) {
   button.disabled = true;
@@ -367,14 +411,6 @@ async function displayLPBalance() {
     console.log(tokenBalanceString);
 }
 
-function getNewMajorButton(id, text, onclick) {
-  const buttonElement = document.createElement('button');
-  buttonElement.id = id;
-  buttonElement.classList.add('majorButton');
-  buttonElement.innerHTML = text;
-  buttonElement.addEventListener('click', onclick);
-  return buttonElement;
-}
 
 function updateSwapButton() {
   const wrapper = document.getElementById('swapButtonWrapper');
