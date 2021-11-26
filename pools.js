@@ -81,7 +81,7 @@ class Token {
     }
 }
 
-
+/*
 const fakePool = new Pool(
     '0xeADfEa5f18c1E1D5030dd352f293d78865a264a2', //swap
     '0x82cCDecF87141190F6A69321FB88F040aff83B08', //rewards
@@ -92,6 +92,7 @@ const fakePool = new Pool(
     ],
     new Token(3, 'Fake-LP', '0x410a69Cdb3320594019Ef14A7C3Fb4Abaf6e962e', 1e+18)
 );
+*/
 
 const usd1Pool = new Pool(
     '0x3E192A2Eae22B3DB07a0039E10bCe29097E881B9',
