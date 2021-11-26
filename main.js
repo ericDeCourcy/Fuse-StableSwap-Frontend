@@ -52,6 +52,7 @@ function selectSection(sectionNumber) {
   } else if (sectionNumber === 1) {
     updateSwapButton();
   } else if (sectionNumber === 2) {
+    updateWithdrawalButtons();
     displayLPBalance();
   }
 }
@@ -198,20 +199,6 @@ async function connectToMetamask(button) {
   }
 }
 
-async function rejectToken(tokenIndex) {
-  const token = activePool.getTokenByIndex(tokenIndex);
-  const transactionData =
-    '0x095ea7b3'                                                    // function signature
-    + activePool.address.replace(/^0x/, '').padStart(64, '0')       // fake swap address
-    + ''.padStart(64, '0');                                         // max amount
-  const transactionParams = activePool.getTransactionParams(transactionData);
-  transactionParams['to'] = token.address;
-  transactionParams['gas'] = '0x0186A0';
-
-  await ethRequest(transactionParams, document.createElement('div'), 'Token rejection');
-  await checkAllTokensForApproval();
-}
-
 async function approveToken(button, tokenIndex, statusElement) {
   button.disabled = true;
   const token = activePool.getTokenByIndex(tokenIndex);
@@ -236,6 +223,19 @@ async function approveToken(button, tokenIndex, statusElement) {
   }
 }
 
+async function rejectToken(tokenIndex) {
+  const token = activePool.getTokenByIndex(tokenIndex);
+  const transactionData =
+    '0x095ea7b3'                                                    // function signature
+    + activePool.address.replace(/^0x/, '').padStart(64, '0')       // fake swap address
+    + ''.padStart(64, '0');                                         // max amount
+  const transactionParams = activePool.getTransactionParams(transactionData);
+  transactionParams['to'] = token.address;
+  transactionParams['gas'] = '0x0186A0';
+
+  await ethRequest(transactionParams, document.createElement('div'), 'Token rejection');
+  await checkAllTokensForApproval();
+}
 
 async function showActionsTab() {
   showLoadingStyle();
@@ -272,6 +272,7 @@ async function checkTokenApproval(token) {
   console.log(`Setting token approval info: ${token.name}: ${token.approved}`);
 }
 
+
 function showLoadingStyle() {
   const loadingOverlay = document.getElementById('loadingOverlay');
   loadingOverlay.hidden = false;
@@ -283,6 +284,7 @@ function hideLoadingStyle() {
   loadingOverlay.hidden = true;
   document.body.style.cursor = 'default';
 }
+
 
 async function changeActivePool(value) {
   showLoadingStyle();
@@ -337,7 +339,6 @@ function getNewMajorButton(id, text, onclick) {
 
 
 function updateDepositButton() {
-  console.log('triggered');
   const wrapper = document.getElementById('depositButtonWrapper');
   const buttonElement = document.getElementById('depositButton');
   buttonElement.disabled = true;
@@ -386,6 +387,40 @@ async function deposit(button) {
   button.disabled = false;
 }
 
+
+async function displayUserBalance() {
+  const swapTokenIndexIn = document.getElementById('swapTokenIndexIn');
+  const userBalance = document.getElementById('userBalance');
+
+  let tokenIndexIn = swapTokenIndexIn.value;
+
+  const balanceQueryTxData =
+    '0x70a08231'
+    + ''.padStart(24, '0') 
+    + ethereum.selectedAddress.slice(2,);
+
+
+  try {
+    let rawUserBalance = await ethereum.request({
+      method: 'eth_call',
+      params:   [{
+        to: activePool.poolTokens[tokenIndexIn].address,
+        data: balanceQueryTxData
+      }]
+    });
+    console.log(`Raw balance retrieved: ${rawUserBalance}.`);  //TODO add debug toggle
+  
+    //format this to correct num of decimals
+    const tokenBalance = parseInt(rawUserBalance, 16) / activePool.poolTokens[tokenIndexIn].decimals;
+
+    // display it
+    userBalance.innerHTML = `Your current balance: ${tokenBalance} ${activePool.poolTokens[tokenIndexIn].name}`;
+  
+  } catch (error) {
+    console.log(`Error retreiving user balance: ${error.code} ${error.message}`);
+  }
+
+}
 
 async function displayLPBalance() {
     const LPTokenBalanceElement = document.getElementById('LPTokenBalance');
@@ -460,7 +495,6 @@ async function swap(button) {
   button.disabled = false;
 }
 
-
 async function calculateSwap(value) {
   const swapTokenIndexIn = document.getElementById('swapTokenIndexIn');
   const swapTokenIndexOut = document.getElementById('swapTokenIndexOut');
@@ -501,38 +535,9 @@ async function calculateSwap(value) {
   }
 }
 
-async function displayUserBalance() {
-  const swapTokenIndexIn = document.getElementById('swapTokenIndexIn');
-  const userBalance = document.getElementById('userBalance');
 
-  let tokenIndexIn = swapTokenIndexIn.value;
-
-  const balanceQueryTxData =
-    '0x70a08231'
-    + ''.padStart(24, '0') 
-    + ethereum.selectedAddress.slice(2,);
-
-
-  try {
-    let rawUserBalance = await ethereum.request({
-      method: 'eth_call',
-      params:   [{
-        to: activePool.poolTokens[tokenIndexIn].address,
-        data: balanceQueryTxData
-      }]
-    });
-    console.log(`Raw balance retrieved: ${rawUserBalance}.`);  //TODO add debug toggle
+function updateWithdrawalButtons() {
   
-    //format this to correct num of decimals
-    const tokenBalance = parseInt(rawUserBalance, 16) / activePool.poolTokens[tokenIndexIn].decimals;
-
-    // display it
-    userBalance.innerHTML = `Your current balance: ${tokenBalance} ${activePool.poolTokens[tokenIndexIn].name}`;
-  
-  } catch (error) {
-    console.log(`Error retreiving user balance: ${error.code} ${error.message}`);
-  }
-
 }
 
 async function withdrawBalanced(button) {
@@ -561,7 +566,6 @@ async function withdrawBalanced(button) {
   await ethRequest(transactionParams, statusElement, loggingKeyword);
   button.disabled = false;
 }
-
 
 async function withdrawImbalanced(button) {
   button.disabled = true;
@@ -604,7 +608,6 @@ async function withdrawImbalanced(button) {
   await ethRequest(transactionParams, statusElement, 'Imbalanced Withdrawal');
   button.disabled = false;
 }
-
 
 async function withdrawSingleToken(button) {
   button.disabled = true;
