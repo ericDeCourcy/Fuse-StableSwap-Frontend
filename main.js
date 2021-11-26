@@ -73,6 +73,7 @@ function selectSubsection(subsectionNumber) {
   withdrawalSubsections.forEach(element => {
     element.hidden = true;
   });
+  updateWithdrawalButtons();
   withdrawalSubsections[subsectionNumber].hidden = false;
   withdrawalSubsectionTitles.forEach(element => {
     element.classList.remove('activeSection');
@@ -218,6 +219,7 @@ async function approveToken(button, tokenIndex, statusElement) {
     await checkTokenApproval(token);
     updateDepositButton();
     updateSwapButton();
+    updateWithdrawalButtons();
   } else {
     button.disabled = false;
   }
@@ -235,6 +237,9 @@ async function rejectToken(tokenIndex) {
 
   await ethRequest(transactionParams, document.createElement('div'), 'Token rejection');
   await checkAllTokensForApproval();
+  updateDepositButton();
+  updateSwapButton();
+  updateWithdrawalButtons();
 }
 
 async function showActionsTab() {
@@ -537,7 +542,46 @@ async function calculateSwap(value) {
 
 
 function updateWithdrawalButtons() {
-  
+  buttons = [
+    {
+      id: 'withdrawBalancedButton',
+      wrapper: document.getElementById('withdrawBalancedButtonWrapper'),
+      element: document.getElementById('withdrawBalancedButton'),
+      status: document.getElementById('withdrawBalancedStatus'),
+      clickEvent: withdrawBalanced,
+      text: 'Balanced Withdrawal'
+    },
+    {
+      id: 'withdrawImbalancedButton',
+      wrapper: document.getElementById('withdrawImbalancedButtonWrapper'),
+      element: document.getElementById('withdrawImbalancedButton'),
+      status: document.getElementById('withdrawImbalancedStatus'),
+      clickEvent: withdrawImbalanced,
+      text: 'Imbalanced Withdrawal'
+    },
+    {
+      id: 'withdrawSingleButton',
+      wrapper: document.getElementById('withdrawSingleButtonWrapper'),
+      element: document.getElementById('withdrawSingleButton'),
+      status: document.getElementById('singleWithdrawStatus'),
+      clickEvent: withdrawSingleToken,
+      text: 'Withdraw Single Token'
+    }
+  ];
+  buttons.forEach((button) => {
+    button.element.disabled = true;
+    let newButtonElement;
+    if (activePool.LPToken.approved) {
+      newButtonElement = getNewMajorButton(button.id, button.text, 
+        (() => button.clickEvent(newButtonElement))
+      );
+    } else {
+      newButtonElement = getNewMajorButton(button.id, `Approve ${activePool.LPToken.name}`,
+        (() => approveToken(newButtonElement, activePool.LPToken.index, button.status))
+      );
+    }
+    button.wrapper.replaceChild(newButtonElement, button.element);
+  });
 }
 
 async function withdrawBalanced(button) {

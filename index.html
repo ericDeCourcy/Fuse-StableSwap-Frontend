@@ -57,7 +57,7 @@
 				<button id="imbalancedWithdrawalTitle" class="subsectionButton" onclick="selectSubsection(1)">Imbalanced Withdrawal</button>
 				<button id="singleWithdrawalTitle" class="subsectionButton" onclick="selectSubsection(2)">Single Token Withdrawal</button>
 			</div>
-
+ 
 			<div id="balancedWithdrawal" class="subsection">
 				<div class="instructions">
 					This will burn LP tokens and send you tokens in equal proportions to what the pool has.
@@ -68,7 +68,7 @@
 					<label for="withdrawAmountInput">LP Tokens To Withdraw:</label>
 					<input type="number" id="withdrawAmountInput" name="withdrawAmountInput" min="0" value="0"/>
 				</form>
-				<button id="withdrawBalancedButton" class="majorButton" onclick="withdrawBalanced(this)">Withdraw Balanced</button>
+				<div id="withdrawBalancedButtonWrapper"><button id="withdrawBalancedButton" class="majorButton">Withdraw Balanced</button></div>
 				<div id="withdrawBalancedStatus" class="status">Balanced Withdrawal not initiated.</div>
 			</div>
 
@@ -78,7 +78,7 @@
 					<br/>Make sure your LP tokens are approved!
 				</div>
 				<form id="imbalancedWithdrawalForm"><!-- token options dynamically generated --></form>
-				<button id="withdrawImbalancedButton" class="majorButton" onclick="withdrawImbalanced(this)">Withdraw Imbalanced</button>
+				<div id="withdrawImbalancedButtonWrapper"><button id="withdrawImbalancedButton" class="majorButton">Withdraw Imbalanced</button></div>
 				<div id="withdrawImbalancedStatus" class="status">Imbalanced Withdrawal not initiated.</div>
 			</div>
 			
@@ -87,7 +87,7 @@
 					This will burn a specified amount of LP tokens and withdraw all funds in the form of a single token.
 				</div>
 				<form id="singleWithdrawalForm"><!-- token options dynamically generated --></form>
-				<button id="withdrawSingleButton" class="majorButton" onclick="withdrawSingleToken(this)">Withdraw Single Token</button>
+				<div id="withdrawSingleButtonWrapper"><button id="withdrawSingleButton" class="majorButton">Withdraw Single Token</button></div>
 				<div id="singleWithdrawStatus" class="status">Single Token Withdrawal not initiated.</div>
 			</div>
 		</div>
