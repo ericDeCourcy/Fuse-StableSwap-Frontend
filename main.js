@@ -310,8 +310,8 @@ function populateActionOptions() {
   document.getElementById('swapForm').innerHTML =
     `<label for="swapAmountIn">Tokens in for swap:</label>`
     + `<input type="number" id="swapAmountIn" name="swapAmountIn" oninput="calculateSwap(value)" min="0" value="0"/>`
-    + activePool.getSelectTokenHTML('Token for swap input:', 'swapTokenIndexIn')
-    + activePool.getSelectTokenHTML('Token for swap output:', 'swapTokenIndexOut');
+    + activePool.getSelectTokenHTML('Token you will send in:', 'swapTokenIndexIn')
+    + activePool.getSelectTokenHTML('Token you will receive:', 'swapTokenIndexOut');
 
     const indexInElement = document.getElementById('swapTokenIndexIn');
     indexInElement.addEventListener('change', displayUserBalance);
