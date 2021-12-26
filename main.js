@@ -339,16 +339,17 @@ function populateActionOptions() {
 
   document.getElementById('swapForm').innerHTML =
     `<label for="swapAmountIn">Tokens in for swap:</label>`
-    + `<input type="number" id="swapAmountIn" name="swapAmountIn" oninput="calculateSwap(value)" min="0" value="0"/>`
+    + `<input type="number" id="swapAmountIn" name="swapAmountIn" oninput="calculateSwap()" min="0" value="0"/>`
     + activePool.getSelectTokenHTML('Token you will send in:', 'swapTokenIndexIn')
     + activePool.getSelectTokenHTML('Token you will receive:', 'swapTokenIndexOut');
 
-    const indexInElement = document.getElementById('swapTokenIndexIn');
-    indexInElement.addEventListener('change', displayUserBalance);
-    indexInElement.addEventListener('change', updateSwapButton);
-
-    const indexOutElement = document.getElementById('swapTokenIndexOut');
-    indexOutElement.addEventListener('change', displayUserBalance);
+  const indexOutElement = document.getElementById('swapTokenIndexOut');
+  const indexInElement = document.getElementById('swapTokenIndexIn');
+  indexInElement.addEventListener('change', updateSwapButton);
+  [indexInElement, indexOutElement].forEach((element) => {
+    element.addEventListener('change', displayUserBalance);
+    element.addEventListener('change', calculateSwap);
+  });
 
   document.getElementById('singleWithdrawalForm').innerHTML =
     activePool.getSelectTokenHTML('Withdrawal Token:', 'singleTokenIndex')
@@ -530,16 +531,14 @@ async function swap(button) {
   button.disabled = false;
 }
 
-async function calculateSwap(value) {
-  const swapTokenIndexIn = document.getElementById('swapTokenIndexIn');
-  const swapTokenIndexOut = document.getElementById('swapTokenIndexOut');
+async function calculateSwap() {
+  const swapValueIn = document.getElementById('swapAmountIn').value;
+  const tokenIndexIn = document.getElementById('swapTokenIndexIn').value;
+  const tokenIndexOut = document.getElementById('swapTokenIndexOut').value;
   const swapEstimateElement = document.getElementById('swapEstimate');
   swapEstimateElement.innerHTML = `Estimating swap outcome...`;
 
-  let tokenIndexIn = swapTokenIndexIn.value;
-  let tokenIndexOut = swapTokenIndexOut.value;
-
-  let swapAmountScaled = value * activePool.poolTokens[tokenIndexIn].decimals;
+  let swapAmountScaled = swapValueIn * activePool.poolTokens[tokenIndexIn].decimals;
   
   const transactionData = 
     '0xa95b089f'    // calculate swap sighash
@@ -547,7 +546,6 @@ async function calculateSwap(value) {
     + getPaddedHex(tokenIndexOut) 
     + getPaddedHex(swapAmountScaled);
 
-  console.log("got to before the try in calc swap");
   console.log("transactionData = " + transactionData);
 
   try {
