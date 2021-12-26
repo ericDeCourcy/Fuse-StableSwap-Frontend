@@ -192,6 +192,7 @@ async function connectToMetamask(button) {
     }
     accounts = await ethereum.request({ method: 'eth_requestAccounts' });
     showSuccess(statusElement, loggingKeyword);
+    //TODO alanna this shouldn't happen until complete success
     await showActionsTab();
   } catch (error) {
     showError(statusElement, loggingKeyword, error);
