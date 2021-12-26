@@ -192,11 +192,41 @@ async function connectToMetamask(button) {
     }
     accounts = await ethereum.request({ method: 'eth_requestAccounts' });
     showSuccess(statusElement, loggingKeyword);
+    //TODO alanna this shouldn't happen until complete success
     await showActionsTab();
   } catch (error) {
     showError(statusElement, loggingKeyword, error);
   } finally {
     button.disabled = false;
+  }
+
+  try {
+    await ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: 
+        [{chainId: '0x7a'  }],
+    });
+  } catch (switchError) {
+    showError(statusElement, 'Chain ID Switch');
+
+    if (switchError.code === 4902) {
+      try {
+        await ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{chainId: '0x7a', 
+                    chainName: 'Fuse',
+                    nativeCurrency: {
+                      name: 'Fuse',
+                      symbol: 'FUSE',
+                      decimals: 18,
+                    },
+                    rpcUrl: 'https://rpc.fuse.io'
+                  }],
+        });
+      } catch (addError) {
+        // TODO: alannnnaaaaaa
+      }
+    }
   }
 }
 
