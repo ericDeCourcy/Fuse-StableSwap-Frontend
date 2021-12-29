@@ -350,8 +350,9 @@ function populateActionOptions() {
   document.getElementById('swapForm').innerHTML =
     `<label for="swapAmountIn">Tokens in for swap:</label>`
     + `<input type="number" id="swapAmountIn" name="swapAmountIn" oninput="calculateSwap()" min="0" value="0"/>`
-    + activePool.getSelectTokenHTML('Token you will send in:', 'swapTokenIndexIn')
+    + activePool.getSelectTokenHTML('Token you will send in:', 'swapTokenIndexIn', true)
     + activePool.getSelectTokenHTML('Token you will receive:', 'swapTokenIndexOut');
+    updateSwapOutOptions();
 
   const indexOutElement = document.getElementById('swapTokenIndexOut');
   const indexInElement = document.getElementById('swapTokenIndexIn');
@@ -396,9 +397,6 @@ function updateDepositButton() {
     const elementValue = Number(document.getElementById(elementName).value);
 
     if (elementValue > 0 && token.approved === false) {
-
-      console.log(token);
-      console.log(elementValue);
       newButtonElement = getNewMajorButton('depositButton', `Approve ${token.name}`,
         (() => approveToken(newButtonElement, token.index, document.getElementById('depositStatus')))
       );
@@ -459,7 +457,6 @@ async function displayUserBalance() {
     //format this to correct num of decimals
     const tokenBalance = parseInt(rawUserBalance, 16) / activePool.poolTokens[tokenIndexIn].decimals;
 
-    // display it
     userBalance.innerHTML = `Your current balance: ${tokenBalance} ${activePool.poolTokens[tokenIndexIn].name}`;
   
   } catch (error) {
@@ -539,6 +536,29 @@ async function swap(button) {
 
   await ethRequest(transactionParams, statusElement, loggingKeyword);
   button.disabled = false;
+}
+
+function updateSwapOutOptions() {
+  const tokenIndexIn = document.getElementById('swapTokenIndexIn');
+  const tokenIndexOut = document.getElementById('swapTokenIndexOut');
+
+  const inVal = tokenIndexIn.value;
+  const outVal = tokenIndexOut.value;
+
+  for (const option of tokenIndexOut.options) {
+    option.selected = false;
+    option.disabled = (option.value == inVal) ? true : false;
+  }
+
+  if (inVal != outVal) {
+    tokenIndexOut.options[outVal].selected = true;
+  } else {
+    if (inVal == 0) {
+      tokenIndexOut.options[1].selected = true;
+    } else {
+      tokenIndexOut.options[0].selected = true;
+    }
+  }
 }
 
 async function calculateSwap() {
