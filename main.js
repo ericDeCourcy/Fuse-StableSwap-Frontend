@@ -119,7 +119,11 @@ function showSuccess(statusElement, loggingKeyword) {
 }
 
 function showError(statusElement, loggingKeyword, error) {
-  console.error(`${loggingKeyword} failed: ${error.code} ${error.message}`);
+  if (typeof error.code !== 'undefined') {
+    console.error(`${loggingKeyword} failed: ${error.code} ${error.message}`);
+  } else {
+    console.error(`${loggingKeyword} failed: ${error.message}`);
+  }
   statusElement.innerHTML = `${loggingKeyword} failed. See console log for details.`;
 }
 
@@ -187,46 +191,52 @@ async function connectToMetamask(button) {
   showAttempting(statusElement, loggingKeyword);
 
   try {
+    // ensure the user has Metamask and connect to it
     if (!ethereum) {
       throw new ReferenceError('Could not access Metamask browser extension.');
     }
     accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+
+    // try to switch to the Fuse chain
+    try {
+      showAttempting(statusElement, 'switch to Fuse chain');
+      await ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x7a' }],
+      });
+    } catch (switchError) {
+      // if we couldn't switch because it doesn't exist, try to add it
+      if (switchError.code === 4902) {
+        console.log(`Fuse chain was not found on your Metamask extension.`);
+        showAttempting(statusElement, 'add Fuse chain to Metamask');
+        try {
+          await ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x7a',
+              chainName: 'Fuse',
+              nativeCurrency: {
+                name: 'Fuse',
+                symbol: 'FUSE',
+                decimals: 18,
+              },
+              rpcUrls: ['https://rpc.fuse.io'],
+              blockExplorerUrls: ['https://explorer.fuse.io/']
+            }],
+          });
+        } catch (addError) {
+          throw new ReferenceError('Failed to add Fuse chain to Metamask.');
+        }
+      } else { // if we couldn't switch for another reason, just fail out
+        throw new ReferenceError('Failed to switch Metamask to Fuse chain.');
+      }
+    }
     showSuccess(statusElement, loggingKeyword);
-    //TODO alanna this shouldn't happen until complete success
     await showActionsTab();
   } catch (error) {
     showError(statusElement, loggingKeyword, error);
   } finally {
     button.disabled = false;
-  }
-
-  try {
-    await ethereum.request({
-      method: 'wallet_switchEthereumChain',
-      params: 
-        [{chainId: '0x7a'  }],
-    });
-  } catch (switchError) {
-    showError(statusElement, 'Chain ID Switch');
-
-    if (switchError.code === 4902) {
-      try {
-        await ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [{chainId: '0x7a', 
-                    chainName: 'Fuse',
-                    nativeCurrency: {
-                      name: 'Fuse',
-                      symbol: 'FUSE',
-                      decimals: 18,
-                    },
-                    rpcUrl: 'https://rpc.fuse.io'
-                  }],
-        });
-      } catch (addError) {
-        // TODO: alannnnaaaaaa
-      }
-    }
   }
 }
 
@@ -339,16 +349,18 @@ function populateActionOptions() {
 
   document.getElementById('swapForm').innerHTML =
     `<label for="swapAmountIn">Tokens in for swap:</label>`
-    + `<input type="number" id="swapAmountIn" name="swapAmountIn" oninput="calculateSwap(value)" min="0" value="0"/>`
-    + activePool.getSelectTokenHTML('Token you will send in:', 'swapTokenIndexIn')
+    + `<input type="number" id="swapAmountIn" name="swapAmountIn" oninput="calculateSwap()" min="0" value="0"/>`
+    + activePool.getSelectTokenHTML('Token you will send in:', 'swapTokenIndexIn', true)
     + activePool.getSelectTokenHTML('Token you will receive:', 'swapTokenIndexOut');
+    updateSwapOutOptions();
 
-    const indexInElement = document.getElementById('swapTokenIndexIn');
-    indexInElement.addEventListener('change', displayUserBalance);
-    indexInElement.addEventListener('change', updateSwapButton);
-
-    const indexOutElement = document.getElementById('swapTokenIndexOut');
-    indexOutElement.addEventListener('change', displayUserBalance);
+  const indexOutElement = document.getElementById('swapTokenIndexOut');
+  const indexInElement = document.getElementById('swapTokenIndexIn');
+  indexInElement.addEventListener('change', updateSwapButton);
+  [indexInElement, indexOutElement].forEach((element) => {
+    element.addEventListener('change', displayUserBalance);
+    element.addEventListener('change', calculateSwap);
+  });
 
   document.getElementById('singleWithdrawalForm').innerHTML =
     activePool.getSelectTokenHTML('Withdrawal Token:', 'singleTokenIndex')
@@ -385,9 +397,6 @@ function updateDepositButton() {
     const elementValue = Number(document.getElementById(elementName).value);
 
     if (elementValue > 0 && token.approved === false) {
-
-      console.log(token);
-      console.log(elementValue);
       newButtonElement = getNewMajorButton('depositButton', `Approve ${token.name}`,
         (() => approveToken(newButtonElement, token.index, document.getElementById('depositStatus')))
       );
@@ -448,7 +457,6 @@ async function displayUserBalance() {
     //format this to correct num of decimals
     const tokenBalance = parseInt(rawUserBalance, 16) / activePool.poolTokens[tokenIndexIn].decimals;
 
-    // display it
     userBalance.innerHTML = `Your current balance: ${tokenBalance} ${activePool.poolTokens[tokenIndexIn].name}`;
   
   } catch (error) {
@@ -530,16 +538,37 @@ async function swap(button) {
   button.disabled = false;
 }
 
-async function calculateSwap(value) {
-  const swapTokenIndexIn = document.getElementById('swapTokenIndexIn');
-  const swapTokenIndexOut = document.getElementById('swapTokenIndexOut');
+function updateSwapOutOptions() {
+  const tokenIndexIn = document.getElementById('swapTokenIndexIn');
+  const tokenIndexOut = document.getElementById('swapTokenIndexOut');
+
+  const inVal = tokenIndexIn.value;
+  const outVal = tokenIndexOut.value;
+
+  for (const option of tokenIndexOut.options) {
+    option.selected = false;
+    option.disabled = (option.value == inVal) ? true : false;
+  }
+
+  if (inVal != outVal) {
+    tokenIndexOut.options[outVal].selected = true;
+  } else {
+    if (inVal == 0) {
+      tokenIndexOut.options[1].selected = true;
+    } else {
+      tokenIndexOut.options[0].selected = true;
+    }
+  }
+}
+
+async function calculateSwap() {
+  const swapValueIn = document.getElementById('swapAmountIn').value;
+  const tokenIndexIn = document.getElementById('swapTokenIndexIn').value;
+  const tokenIndexOut = document.getElementById('swapTokenIndexOut').value;
   const swapEstimateElement = document.getElementById('swapEstimate');
   swapEstimateElement.innerHTML = `Estimating swap outcome...`;
 
-  let tokenIndexIn = swapTokenIndexIn.value;
-  let tokenIndexOut = swapTokenIndexOut.value;
-
-  let swapAmountScaled = value * activePool.poolTokens[tokenIndexIn].decimals;
+  let swapAmountScaled = swapValueIn * activePool.poolTokens[tokenIndexIn].decimals;
   
   const transactionData = 
     '0xa95b089f'    // calculate swap sighash
@@ -547,7 +576,6 @@ async function calculateSwap(value) {
     + getPaddedHex(tokenIndexOut) 
     + getPaddedHex(swapAmountScaled);
 
-  console.log("got to before the try in calc swap");
   console.log("transactionData = " + transactionData);
 
   try {
